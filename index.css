@@ -1,0 +1,15 @@
+html, body {
+  width: 350px;
+  background-color: #2C2F33;
+}
+
+footer p{
+	text-align: center;
+	margin: 5px;
+	display: block;
+	color: #ffffff;
+}
+footer a{
+	color: #7289DA;
+	text-decoration: none;
+}
