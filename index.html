@@ -3,17 +3,38 @@
 <html>
   <head>
     <meta charset="utf-8">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css" integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay" crossorigin="anonymous">
     <link rel="stylesheet" href="index.css"/>
   </head>
 
 <body>
   <header>
     <p id="js-currentWindowInfo"></p>
+    <div class="actions">
+      <center>
+        <div class="noactive" id="js-tab-actions-sync">
+          <i class="fas fa-sync-alt"></i><p>Don't Sync tab</p>
+        </div>
+        <div class="active" id="js-tab-actions-common">
+          <i class="fas fa-thumbtack"></i><p>Common tab</p>
+        </div>
+        <div id="js-tab-actions-move">
+           <i class="fas fa-reply"></i><p>Move tab</p>
+        </div>
+      </center>
+    </div>
   </header>
 
   <main>
-    
-
+    <div id="js-shared-non-sync-tabs-div" class="group-div">
+      <p id="js-shared-non-sync-tabs">No Synced Common Tabs</p><i class="fas fa-arrow-right"></i>
+    </div>
+    <div id="js-shared-sync-tabs-div" class="group-div">
+      <p id="js-shared-sync-tabs">Synced Common Tabs</p><i class="fas fa-arrow-right"></i>
+    </div>
+    <div id="js-groups-tab">
+      
+    </div>
   </main>
 
   <footer>

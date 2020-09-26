@@ -1,6 +1,7 @@
 {
   "browser_specific_settings": {
     "gecko": {
+      "id": "tabsmanager@clement.grennerat.fr",
       "strict_min_version": "58.0a1"
     }
   },

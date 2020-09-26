@@ -3,8 +3,7 @@
 /*//////////*/
 
 html, body {
-  width: 350px;
-  background-color: #2C2F33;
+  width: 400px;
 }
 p{
 	color: #ffffff;
@@ -20,13 +19,77 @@ header p{
 	text-align: center;
 	margin: 3px;
 }
+header .actions{
+	
+	display: flex;
+	align-items: stretch;
+	justify-content: center;
+}
+header .actions div{
+	padding: 4px 12px;
+	margin: 4px;
+	border-radius: 4px;
+	background-color: #383a3e;
+	transition: .3s;
+	display: inline-block;
+	opacity: 0.8;
+}
+header .actions div:hover{
+	opacity: 1;
+}
+header .actions div.active{
+	background-color: #009c1d;
+}
+header .actions div.noactive{
+	background-color: #b70000;
+}
+header .actions i{
+	color: white;
+	font-size: 14px;
+	display: inline-block;
+}header .actions p{
+	color: white;
+	font-size: 12px;
+	display: inline-block;
+}
 
 /*//////*/
 /* MAIN */
 /*//////*/
 
 main{
-	min-height: 300px;
+	min-height: 400px;
+	background-color: #383a3e;
+}
+main .group-div {
+	margin: 0;
+	padding: 0;
+	border-bottom: 1px solid #8696a1;
+	display: flex;
+	align-items: stretch;
+	transition: .3s;
+}
+main p {
+	padding: 5px 15px;
+	margin: 0;
+	font-size: 14px;
+	flex-grow: 4;
+	transition: .3s;
+}
+main .group-div:hover {
+	background-color: #1f2225;
+}
+main i {
+	padding: 4px 12px;
+	margin: 3px;
+	float: right;
+	color: white;
+	background-color: #1f2225;
+	border-radius: 4px;
+	transition: .3s;
+}
+main i:hover {
+	background-color: #7289DA;
 }
 
 /*////////*/
