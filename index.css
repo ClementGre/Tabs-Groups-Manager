@@ -1,15 +1,45 @@
+/*//////////*/
+/* CSS INIT */
+/*//////////*/
+
 html, body {
   width: 350px;
   background-color: #2C2F33;
 }
+p{
+	color: #ffffff;
+}
+/*////////*/
+/* HEADER */
+/*////////*/
 
+header{
+	background-color: #7289DA;
+}
+header p{
+	text-align: center;
+	margin: 3px;
+}
+
+/*//////*/
+/* MAIN */
+/*//////*/
+
+main{
+	min-height: 300px;
+}
+
+/*////////*/
+/* FOOTER */
+/*////////*/
+
+footer{
+	background-color: #7289DA;
+}
 footer p{
 	text-align: center;
 	margin: 5px;
-	display: block;
-	color: #ffffff;
 }
 footer a{
-	color: #7289DA;
-	text-decoration: none;
+	color: #ffffff;
 }

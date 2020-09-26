@@ -2,6 +2,12 @@
 const BOOKMARK_PREFIX = "Tab number ";
 const BOOKMARKS_FOLDER_TITLE = "Opened Tabs (Tabs Manager)";
 
+browser.windows.getAll({windowTypes: ["normal"]}).then((windows) => {
+  browser.storage.local.set({
+    supportedWindowId: windows[0].id
+  }).then(() => {}, (error) => { console.log(error); });
+});
+
 var tabsProcess = []; // Prevent repeating events system
 
 /////////////////////////////////
@@ -31,6 +37,8 @@ browser.bookmarks.search({title: BOOKMARKS_FOLDER_TITLE}).then((bookmarkItems) =
 
 // Create new bookmark
 var addBookmark = function addBookmark(tab){
+  if(tabsProcess.includes(tab.id)) return;
+  tabsProcess.push(tab.id);
   browser.bookmarks.create({ // Create Bookmark
     title: BOOKMARK_PREFIX + tab.index,
     index: 0,
@@ -45,6 +53,8 @@ var addBookmark = function addBookmark(tab){
 
 // Update a bookmark url and flags
 var updateBookmark = function updateBookmark(tab, bookmark){
+  if(tabsProcess.includes(tab.id)) return;
+  tabsProcess.push(tab.id);
   browser.bookmarks.update(bookmark.id, { // Update tab URL
       url: tab.url
     }).then((node) => {
@@ -55,8 +65,6 @@ var updateBookmark = function updateBookmark(tab, bookmark){
 
 // Update or create only one bookmark (call addBookmark or updateBookmark)
 var addOrUpdateBookmark = function addOrUpdateBookmark(tab){
-  if(tabsProcess.includes(tab.id)) return;
-  tabsProcess.push(tab.id);
 
   browser.bookmarks.search({title: BOOKMARK_PREFIX + tab.index}).then((bookmarkItems) => { // Search Bookmark
     if(bookmarkItems.length === 0){ // Bookmark does not exist -> Save it
@@ -64,32 +72,34 @@ var addOrUpdateBookmark = function addOrUpdateBookmark(tab){
     }else{ // Bookmark exist
       updateBookmark(tab, bookmarkItems[0]);
     }
-  }, (error) => { tabsProcess = arrayRemove(tabsProcess, tab.id); });
+  }, (error) => { });
 }
 
 // Iterate into tabs and update/create bookmarks for all pages
 // After that, remove others unused bookmarks with deleteNextsBookmarks
 var updateAllBookmarks = function updateAllBookmarks(){
 
-  browser.tabs.query({}).then((tabs) => {
+  browser.storage.local.get().then((data) => { // Get supported Window Id
+    browser.tabs.query({windowId: data.supportedWindowId}).then((tabs) => { // get tabs of the supported window
 
-    var index = 0;
-    for(let tab of tabs){ // Iterate int tabs
-      browser.bookmarks.search({title: BOOKMARK_PREFIX + index}).then((bookmarkItems) => { // Search Bookmark
+      var index = 0;
+      for(let tab of tabs){ // Iterate int tabs
+        browser.bookmarks.search({title: BOOKMARK_PREFIX + index}).then((bookmarkItems) => { // Search Bookmark
 
-        if(bookmarkItems.length === 0){ // Bookmark does not exist -> Create one
-          addBookmark(tab);
-        }else{ // Bookmark exist
-          if(tab.url !== bookmarkItems[0].url){ // Bookmark have changed his URL : update URL
-            updateBookmark(tab, bookmarkItems[0]);
+          if(bookmarkItems.length === 0){ // Bookmark does not exist -> Create one
+            addBookmark(tab);
+          }else{ // Bookmark exist
+            if(tab.url !== bookmarkItems[0].url){ // Bookmark have changed his URL : update URL
+              updateBookmark(tab, bookmarkItems[0]);
+            }
           }
-        }
-      }, (error) => {});
-      index++;
-    }
-    deleteNextsBookmarks(index); // Delete above bookmarks (Bookmarks without tab)
-  });
+        }, (error) => {});
+        index++;
 
+      }
+      deleteNextsBookmarks(index); // Delete above bookmarks (Bookmarks without tab)
+    });
+  });
 }
 // Delete Bookmark by tab Index (by Bookmark name) and repeat this for all above bookmarks
 var deleteNextsBookmarks = function deleteNextsBookmarks(index){
@@ -109,23 +119,45 @@ var deleteNextsBookmarks = function deleteNextsBookmarks(index){
 //////////////////////////
 
 browser.tabs.onRemoved.addListener((tabId, removeInfo) => { // Remove Tab
-  setTimeout(() => {
-    updateAllBookmarks();
-  }, 2000);
+  browser.storage.local.get().then((item) => { // Get supported Window Id
+    if(item.supportedWindowId == removeInfo.windowId){ // Update only if we are in the supported window
+      setTimeout(() => {
+        updateAllBookmarks();
+      }, 2000);
+    }
+  }, (error) => { console.log(error); });
 });
 browser.tabs.onDetached.addListener((tabId, detachInfo) => { // Remove Tab from this Window
-  updateAllBookmarks();
+  browser.storage.local.get().then((item) => { // Get supported Window Id
+    if(item.supportedWindowId == detachInfo.windowId){ // Update only if we are in the supported window
+      updateAllBookmarks();
+    }
+  }, (error) => { console.log(error); });
 });
 browser.tabs.onCreated.addListener((tab) => { // Create Tab
-  updateAllBookmarks();
+  browser.storage.local.get().then((item) => { // Get supported Window Id
+    if(item.supportedWindowId == tab.windowId){ // Update only if we are in the supported window
+      updateAllBookmarks();
+    }
+  }, (error) => { console.log(error); });
 });
 browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => { // Update Tab
-  if(changeInfo.url){
-    addOrUpdateBookmark(tab);
+  if(changeInfo.url){ // Update only if the URL was changed
+    browser.storage.local.get().then((item) => { // Get supported Window Id
+      if(item.supportedWindowId == tab.windowId){ // Update only if we are in the supported window
+        addOrUpdateBookmark(tab);
+      }
+    }, (error) => { console.log(error); });
   }
 });
 browser.tabs.onMoved.addListener((tabId, moveInfo) => { // Move Tab
-  updateAllBookmarks();
+  browser.storage.local.get().then((item) => { // Get supported Window Id
+    if(item.supportedWindowId == moveInfo.windowId){ // Update only if we are in the supported window
+      setTimeout(() => {
+        updateAllBookmarks();
+      }, 2000);
+    }
+  }, (error) => { console.log(error); });
 });
 
 /////////////////
@@ -137,6 +169,4 @@ function arrayRemove(arr, value) {
     return ele != value;
   });
 }
-
-
 

@@ -5,7 +5,7 @@
     }
   },
   "background": {
-      "scripts": ["background.js"]
+      "scripts": ["bookmarksSync.js"]
   },
   "browser_action": {
     "browser_style": true,
