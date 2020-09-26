@@ -19,6 +19,21 @@ header p{
 	text-align: center;
 	margin: 3px;
 }
+header #js-currentWindowInfo a{
+	background-color: #b70000;
+	opacity: 0.8;
+	padding: 1px 3px;
+	border-radius: 2px;
+	transition: .3s;
+	cursor: pointer;
+}
+header #js-currentWindowInfo a#js-currentWindowInfo-sync{
+	background-color: #009c1d;
+}
+header #js-currentWindowInfo a:hover{
+	opacity: 1;
+}
+
 header .actions{
 	
 	display: flex;
@@ -33,6 +48,7 @@ header .actions div{
 	transition: .3s;
 	display: inline-block;
 	opacity: 0.8;
+	cursor: pointer;
 }
 header .actions div:hover{
 	opacity: 1;
@@ -87,6 +103,7 @@ main i {
 	background-color: #1f2225;
 	border-radius: 4px;
 	transition: .3s;
+	cursor: pointer;
 }
 main i:hover {
 	background-color: #7289DA;
