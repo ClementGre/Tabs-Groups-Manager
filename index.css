@@ -8,6 +8,48 @@ html, body {
 p{
 	color: #ffffff;
 }
+
+body > .loader{
+	z-index: 980;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: black;
+	opacity: .7;
+	overflow: hidden;
+}
+body > .loader .loader-div{
+	z-index: 990;
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: 75%;
+	transform: translateY(-50%) translateX(-50%);
+}
+body > .loader .loader-bar{
+	width: 75%;
+	height: 4px;
+	background-color: #7289DA;
+	animation-name: loader-div;
+  	animation-duration: 1s;
+  	animation-iteration-count: infinite;
+}
+@keyframes loader-div {
+  0% {
+  	width: 0;
+  }
+  50% {
+  	margin-left: 30%;
+  	width: 40%;
+  }
+  100% {
+  	margin-left: 100%;
+  	width: 0;
+  }
+}
+
 /*////////*/
 /* HEADER */
 /*////////*/
@@ -84,6 +126,12 @@ main .group-div {
 	display: flex;
 	align-items: stretch;
 	transition: .3s;
+}
+main .group-div.active{
+	border-left: 4px solid #1fb700;
+}
+main .group-div.common{
+	/*margin-bottom: 5px;*/
 }
 main p {
 	padding: 5px 15px;

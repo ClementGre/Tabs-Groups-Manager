@@ -2,6 +2,91 @@
 const GROUP_COMMON_NO_SYNC = 1;
 const GROUP_COMMON_SYNC = 2;
 
+var activateListeners = true;
+var tabsProcess = []; // Prevent repeating events system
+
+// Setup storage
+
+browser.storage.sync.get().then((data) => {
+  browser.storage.sync.set({
+    groupsTabs: (data.groupsTabs == undefined) ? {default: {}} : data.groupsTabs,
+    sharedSyncTabs: (data.sharedSyncTabs == undefined) ? {} : data.sharedSyncTabs
+  }).then(() => {}, (error) => { console.log(error); });
+});
+
+browser.storage.local.get().then((data) => {
+  browser.storage.local.set({
+    sharedNonSyncTabs: (data.sharedNonSyncTabs == undefined) ? {} : data.sharedNonSyncTabs
+  }).then(() => {});
+});
+
+
+
+
+///////////////////////////
+///// RESTORE SESSION /////
+///////////////////////////
+
+var restoreSession = function restoreSession(){
+  browser.storage.local.get().then((localData) => {
+    browser.storage.sync.get().then((syncData) => {
+
+      activateListeners = false;
+
+      browser.tabs.query({windowId: localData.supportedWindowId}).then((tabs) => { // Get tabs at index
+        var tabsArray = [];
+        for(let tab of tabs) tabsArray.push(tab.id);
+
+        restoreSharedNonSyncTabs(localData);
+        restoreSharedSyncTabs(syncData);
+        restoreCurrentGroupTabs(localData, syncData);
+
+        setTimeout(() => {
+          browser.tabs.remove(tabsArray).then(() => {
+            activateListeners = true;
+            updateAllSavedTabs();
+          });
+        }, 2000);
+
+        setTimeout(() => {
+          activateListeners = true;
+        }, 10000);
+
+      });
+
+    }, (error) => { console.log(error); });
+  }, (error) => { console.log(error); });
+}
+
+function restoreSharedNonSyncTabs(localData){
+  for(let tab of Object.values(localData.sharedNonSyncTabs)){
+    browser.tabs.create({url: tab.url, pinned: true}).then(() => {});
+    totalTabs++;
+  }
+}
+function restoreSharedSyncTabs(syncData){
+  for(let tab of Object.values(syncData.sharedSyncTabs)){
+    browser.tabs.create({url: tab.url, pinned: true}).then(() => {});
+  }
+}
+function restoreCurrentGroupTabs(localData, syncData){
+  var currentGroup = syncData.groupsTabs[localData.currentGroup];
+  if(currentGroup == undefined){
+    currentGroup = syncData.groupsTabs[Object.keys(syncData.groupsTabs)[0]];
+    browser.storage.local.set({
+      currentGroup: Object.keys(syncData.groupsTabs)[0]
+    }).then(() => {}, (error) => { console.log(error); });
+  }
+  if(Object.values(currentGroup).length == 0){
+    browser.tabs.create({}).then(() => {});
+  }
+  for(let tab of Object.values(currentGroup)){
+    browser.tabs.create({url: tab.url, pinned: tab.pinned}).then(() => {}, (error) => {
+      browser.tabs.create({}).then(() => {});
+    });
+  }
+}
+
 // Setup storage vars
 browser.windows.getAll({windowTypes: ["normal"]}).then((windows) => {
   browser.storage.local.set({
@@ -10,23 +95,9 @@ browser.windows.getAll({windowTypes: ["normal"]}).then((windows) => {
   }).then(() => {}, (error) => { console.log(error); });
 });
 
-var tabsProcess = []; // Prevent repeating events system
-
-// TEST : RESET LOCAL & SYNC STORAGE
-
-browser.storage.sync.set({
-  groupsTabs: {default: {}},
-  sharedSyncTabs: {}
-}).then(() => {}, (error) => { console.log(error); });
-
-browser.storage.local.set({
-  sharedNonSyncTabs: {}
-}).then(() => {}, (error) => { console.log(error); });
-
-
-//////////////////////////////
+//////////////////////////
 ///// SAVE FUNCTIONS /////
-//////////////////////////////
+//////////////////////////
 
 // Create or update a saved tab by it's group and index
 var saveOrUpdateTab = function saveOrUpdateTab(tab, index, group, callBack){
@@ -40,7 +111,6 @@ var saveOrUpdateTab = function saveOrUpdateTab(tab, index, group, callBack){
       sharedNonSyncTabs[index+''] = { // Update tab at the specified index
         url: tab.url,
         title: tab.title,
-        muted: tab.mutedInfo.muted,
         favIconUrl: tab.favIconUrl
       };
       browser.storage.local.set({sharedNonSyncTabs}).then( // Update the DB with the modified tabs list
@@ -55,7 +125,6 @@ var saveOrUpdateTab = function saveOrUpdateTab(tab, index, group, callBack){
       sharedSyncTabs[index+''] = { // Update tab at the specified index
         url: tab.url,
         title: tab.title,
-        muted: tab.mutedInfo.muted,
         favIconUrl: tab.favIconUrl
       };
       browser.storage.sync.set({sharedSyncTabs}).then( // Update the DB with the modified tabs list
@@ -71,7 +140,6 @@ var saveOrUpdateTab = function saveOrUpdateTab(tab, index, group, callBack){
         url: tab.url,
         title: tab.title,
         pinned: tab.pinned,
-        muted: tab.mutedInfo.muted,
         favIconUrl: tab.favIconUrl
       };
       browser.storage.sync.set({groupsTabs}).then( // Update the DB with the modified tabs list
@@ -156,12 +224,20 @@ var updateAllSavedTabs = function updateAllSavedTabs(){
     });
   });
 }
-var edits = {
-  windowIndex: 3,
-  targetGroup: GROUP_COMMON_SYNC
+
+var forceUpdateAllSavedTabs = function forceUpdateAllSavedTabs(callBack){
+  console.log("///// START UPDATE ALL /////");
+
+  browser.storage.local.get().then((localData) => { // Get the current group
+    updateNextTab(0, localData.supportedWindowId, localData.currentGroup, () => { // Start a loop with updateNextTab() (He will re-call himself for all tabs)
+        console.log("///// CALL BACK RECEIVED /////");
+        callBack();
+    });
+  });
 }
+
 // Update a tab and all next tabs (by index) (by re-call)
-var updateNextTab = function updateNextTab(index, supportedWindowId, currentGroup, edits, callBack){
+var updateNextTab = function updateNextTab(index, supportedWindowId, currentGroup, callBack){
   console.log("updateTab " + index);
   browser.tabs.query({index: index, windowId: supportedWindowId}).then((tabs) => { // Get tabs at index
     var tab = tabs[0]; // get tab from tabs list
@@ -171,16 +247,6 @@ var updateNextTab = function updateNextTab(index, supportedWindowId, currentGrou
     }
 
     searchSavedTab(currentGroup, tab.index, (tabData) => { // Search Tab saved
-
-      if(edits.windowIndex != undefined){
-        if(edits.windowIndex == index){
-          saveOrUpdateTab(tab, tabData.index, (tabData.group == undefined) ? currentGroup : tabData.group, () => { // Update Tab
-            updateNextTab(index +1, supportedWindowId, currentGroup, callBack); // Re-call himself for the next Tab
-          });
-
-          return;
-        }
-      }
 
       saveOrUpdateTab(tab, tabData.index, (tabData.group == undefined) ? currentGroup : tabData.group, () => { // Update Tab
         updateNextTab(index +1, supportedWindowId, currentGroup, callBack); // Re-call himself for the next Tab
@@ -198,7 +264,7 @@ var searchSavedTab = function searchSavedTab(currentGroup, totalIndex, callBack)
 
     var index = totalIndex; // for shared non sync tabs, the group index is the same than the window index
     if(index < sharedNonSyncLength && index >= 0){ // if index < this group length : tab are in the shared non sync group
-      cconsole.log(totalIndex + " is " + index + "/Common Non Sync");
+      console.log(totalIndex + " is " + index + "/Common Non Sync");
       callBack({group: GROUP_COMMON_NO_SYNC, index: index, tab: sharedNonSyncTabs[index+'']}) // CallBack with infos
     }else{
       browser.storage.sync.get().then((data2) => { // Get synced data to request shared sync & curent group
@@ -230,6 +296,22 @@ var searchSavedTab = function searchSavedTab(currentGroup, totalIndex, callBack)
   }, (error) => { console.log(error); });
 
 }
+var countListsItems = function countListsItems(callBack){
+  browser.storage.local.get().then((data) => {
+    browser.storage.sync.get().then((data2) => {
+
+      var sharedNonSyncTabs = data.sharedNonSyncTabs;
+      var sharedNonSyncLength = Object.keys(sharedNonSyncTabs).length;
+      var sharedSyncTabs = data2.sharedSyncTabs;
+      var sharedSyncLength = Object.keys(sharedSyncTabs).length;
+      var groupTabs = data2.groupsTabs[data.currentGroup];
+      var groupLength = Object.keys(groupTabs).length;
+
+      callBack(sharedNonSyncLength, sharedSyncLength, groupLength);
+
+    }, (error) => { console.log(error); });
+  }, (error) => { console.log(error); });
+}
 // Delete saved tabs who exist and with an index >= x (By re-call same function)
 var deleteNextsSavedTab = function deleteNextsSavedTab(index, currentGroup, callBack){
   console.log("deleteTab " + index);
@@ -250,16 +332,22 @@ var deleteNextsSavedTab = function deleteNextsSavedTab(index, currentGroup, call
 //////////////////////////
 
 browser.tabs.onRemoved.addListener((tabId, removeInfo) => { // Remove Tab
+  if(!activateListeners) return;
   browser.storage.local.get().then((item) => { // Get supported Window Id
     if(item.supportedWindowId == removeInfo.windowId){ // Update only if we are in the supported window
-      updateAllSavedTabs();
+      setTimeout(() => {
+        updateAllSavedTabs();
+      }, 1000);
     }
   }, (error) => { console.log(error); });
 });
+
 browser.tabs.onDetached.addListener((tabId, detachInfo) => { // Remove Tab from this Window
+  if(!activateListeners) return;
   updateAllSavedTabs();
 });
 browser.tabs.onCreated.addListener((tab) => { // Create Tab
+  if(!activateListeners) return;
   browser.storage.local.get().then((item) => { // Get supported Window Id
     if(item.supportedWindowId == tab.windowId){ // Update only if we are in the supported window
       updateAllSavedTabs();
@@ -267,6 +355,7 @@ browser.tabs.onCreated.addListener((tab) => { // Create Tab
   }, (error) => { console.log(error); });
 });
 browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => { // Update Tab
+  if(!activateListeners) return;
   if(changeInfo.url != undefined || changeInfo.title != undefined || changeInfo.pinned != undefined){ // Update only if the URL was changed
     browser.storage.local.get().then((item) => { // Get supported Window Id
       if(item.supportedWindowId == tab.windowId){ // Update only if we are in the supported window
@@ -276,6 +365,7 @@ browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => { // Update Tab
   }
 });
 browser.tabs.onMoved.addListener((tabId, moveInfo) => { // Move Tab
+  if(!activateListeners) return;
   browser.storage.local.get().then((item) => { // Get supported Window Id
     if(item.supportedWindowId == moveInfo.windowId){ // Update only if we are in the supported window
       updateAllSavedTabs();
