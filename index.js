@@ -11,6 +11,18 @@ var startFunction = function startFunction(localData, syncData){
   console.log(localData);
   console.log(syncData);
 
+  setInterval(() => {
+    browser.storage.sync.get().then((newSyncData) => {
+      if(JSON.stringify(newSyncData) !== JSON.stringify(syncData)) reload();
+      else{
+        browser.storage.local.get().then((newLocalData) => {
+          if(JSON.stringify(newLocalData) !== JSON.stringify(localData)) reload();
+        });
+      }
+    });
+    
+  }, 2000);
+
   // Current window info
 
   if(localData.supportedWindowId == currentWindowId){
@@ -74,11 +86,13 @@ var startFunction = function startFunction(localData, syncData){
               page.countListsItems((sharedNonSyncLength, sharedSyncLength, groupLength) => {
                 var targetIndex = sharedNonSyncLength + sharedSyncLength - 1;
 
+                page.activateListeners = false;
                 browser.tabs.update(currentTab.id, {pinned: false}).then(() => {
                   browser.tabs.move([currentTab.id], {index: targetIndex}).then(() => {
+                    page.activateListeners = true;
                     editListsSizes(page, localData, syncData, 0, -1);
-                  });
-                });
+                  }, (error) => { console.log(error); activateListeners = true; });
+                }, (error) => { console.log(error); activateListeners = true; });
 
               });
             };
@@ -88,11 +102,13 @@ var startFunction = function startFunction(localData, syncData){
               page.countListsItems((sharedNonSyncLength, sharedSyncLength, groupLength) => {
                 var targetIndex = sharedNonSyncLength;
 
+                page.activateListeners = false;
                 browser.tabs.update(currentTab.id, {pinned: true}).then(() => {
                   browser.tabs.move([currentTab.id], {index: targetIndex}).then(() => {
+                    page.activateListeners = true;
                     editListsSizes(page, localData, syncData, 1, -1);
-                  });
-                });
+                  }, (error) => { console.log(error); activateListeners = true; });
+                }, (error) => { console.log(error); activateListeners = true; });
 
               });
             };
@@ -108,11 +124,13 @@ var startFunction = function startFunction(localData, syncData){
               page.countListsItems((sharedNonSyncLength, sharedSyncLength, groupLength) => {
                 var targetIndex = sharedNonSyncLength + sharedSyncLength - 1;
 
+                page.activateListeners = false;
                 browser.tabs.update(currentTab.id, {pinned: false}).then(() => {
                   browser.tabs.move([currentTab.id], {index: targetIndex}).then(() => {
+                    page.activateListeners = true;
                     editListsSizes(page, localData, syncData, -1, 0);
-                  });
-                });
+                  }, (error) => { console.log(error); activateListeners = true; });
+                }, (error) => { console.log(error); activateListeners = true; });
 
               });
             };
@@ -123,11 +141,13 @@ var startFunction = function startFunction(localData, syncData){
               page.countListsItems((sharedNonSyncLength, sharedSyncLength, groupLength) => {
                 var targetIndex = sharedNonSyncLength - 1;
 
+                page.activateListeners = false;
                 browser.tabs.update(currentTab.id, {pinned: true}).then(() => {
                   browser.tabs.move([currentTab.id], {index: targetIndex}).then(() => {
+                    page.activateListeners = true;
                     editListsSizes(page, localData, syncData, -1, 1);
-                  });
-                });
+                  }, (error) => { console.log(error); activateListeners = true; });
+                }, (error) => { console.log(error); activateListeners = true; });
 
               });
             };
@@ -141,11 +161,13 @@ var startFunction = function startFunction(localData, syncData){
               page.countListsItems((sharedNonSyncLength, sharedSyncLength, groupLength) => {
                 var targetIndex = sharedNonSyncLength + sharedSyncLength;
 
+                page.activateListeners = false;
                 browser.tabs.update(currentTab.id, {pinned: true}).then(() => {
                   browser.tabs.move([currentTab.id], {index: targetIndex}).then(() => {
-                  editListsSizes(page, localData, syncData, 0, 1);
-                  });
-                });
+                    page.activateListeners = true;
+                    editListsSizes(page, localData, syncData, 0, 1);
+                  }, (error) => { console.log(error); activateListeners = true; });
+                }, (error) => { console.log(error); activateListeners = true; });
 
               });
             };
@@ -155,11 +177,13 @@ var startFunction = function startFunction(localData, syncData){
               page.countListsItems((sharedNonSyncLength, sharedSyncLength, groupLength) => {
                 var targetIndex = sharedNonSyncLength;
 
+                page.activateListeners = false;
                 browser.tabs.update(currentTab.id, {pinned: true}).then(() => {
                   browser.tabs.move([currentTab.id], {index: targetIndex}).then(() => {
+                    page.activateListeners = true;
                     editListsSizes(page, localData, syncData, 1, 0);
-                  });
-                });
+                  }, (error) => { console.log(error); activateListeners = true; });
+                }, (error) => { console.log(error); activateListeners = true; });
 
               });
             };
@@ -246,7 +270,7 @@ function reload(){
 
 function listTabs(tabs){
   var tabsText = "";
-  Object.keys(tabs).forEach((tabIndex) => {tabsText += tabIndex + " - " + tabs[tabIndex].title + "\n"});
+  Object.keys(tabs).forEach((tabIndex) => {(tabs[tabIndex] != undefined) ? (tabsText += tabIndex + " - " + tabs[tabIndex].title + "\n") : (tabsText += tabIndex + " - undefined" + "\n")});
   if(tabsText == "") tabsText = "Empty";
   return tabsText;
 }
