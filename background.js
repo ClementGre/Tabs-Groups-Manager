@@ -11,7 +11,7 @@ var openedTabsIndexes = {};
 
 browser.storage.sync.get().then((data) => {
   browser.storage.sync.set({
-    groupsTabs: (data.groupsTabs == undefined) ? {default: {}} : data.groupsTabs,
+    groupsTabs: (data.groupsTabs.Default == undefined) ? {Default: {}} : data.groupsTabs,
     sharedSyncTabs: (data.sharedSyncTabs == undefined) ? {} : data.sharedSyncTabs
   }).then(() => {}, (error) => { console.log(error); });
 });
@@ -86,14 +86,6 @@ function restoreCurrentGroupTabs(localData, syncData){
     });
   }
 }
-
-// Setup storage vars
-browser.windows.getAll({windowTypes: ["normal"]}).then((windows) => {
-  browser.storage.local.set({
-    supportedWindowId: windows[0].id,
-    currentGroup: "default"
-  }).then(() => {}, (error) => { console.log(error); });
-});
 
 //////////////////////////
 ///// SAVE FUNCTIONS /////
@@ -447,7 +439,11 @@ browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => { // Update Tab
 });
 var moveListener = function moveListener(tabId, moveInfo){ // Move Tab
   updateAllOpenedTabsIndexes();
-  if(!activateListeners) return;
+  if(!activateListeners){
+    console.log("Listeners are disabled...");
+    return;
+  }
+  console.log("A tab was moved...");
   browser.storage.local.get().then((data) => { // Get supported Window Id
     if(data.supportedWindowId == moveInfo.windowId){ // Update only if we are in the supported window
       countListsItems((sharedNonSyncLength, sharedSyncLength, groupLength) => {
@@ -501,7 +497,14 @@ browser.tabs.onMoved.addListener(moveListener);
 ///// SETUP /////
 /////////////////
 
-// NEED TO COPY TABS...
+// NEED TO COPY TABS and check group
+
+browser.windows.getAll({windowTypes: ["normal"]}).then((windows) => {
+  browser.storage.local.set({
+    supportedWindowId: windows[0].id,
+    currentGroup: "Default"
+  }).then(() => {}, (error) => { console.log(error); });
+});
 
 updateAllSavedTabs();
 

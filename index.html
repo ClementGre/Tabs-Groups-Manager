@@ -15,38 +15,84 @@
 
   <header>
     <p id="js-currentWindowInfo"></p>
-    <div class="actions">
-      <center>
-        <div id="js-tab-actions-sync">
-          <i class="fas fa-sync-alt"></i><p>Don't Sync tab</p>
-        </div>
-        <div id="js-tab-actions-common">
-          <i class="fas fa-thumbtack"></i><p>Common tab</p>
-        </div>
-        <div id="js-tab-actions-move">
-           <i class="fas fa-reply"></i><p>Move tab</p>
-        </div>
-        <div id="js-tab-actions-moveall" style="display: none;">
-           <i class="fas fa-reply-all"></i><p>Move tabs</p>
-        </div>
-      </center>
-    </div>
   </header>
 
-  <main>
-    <div id="js-shared-non-sync-tabs-div" class="group-div active">
-      <p id="js-shared-non-sync-tabs">No Synced Common Tabs</p><i class="fas fa-arrow-right"></i>
-    </div>
-    <div id="js-shared-sync-tabs-div" class="group-div active common">
-      <p id="js-shared-sync-tabs">Synced Common Tabs</p><i class="fas fa-arrow-right"></i>
-    </div>
-    <div id="js-groups-tab">
+  <main id="mainTag">
+
+    <div class="left">
       
+      <div class="actions">
+        <center>
+          <div id="js-tab-actions-sync">
+            <i class="fas fa-sync-alt"></i><p>Don't Sync tab</p>
+          </div>
+          <div id="js-tab-actions-common">
+            <i class="fas fa-thumbtack"></i><p>Common tab</p>
+          </div>
+          <div id="js-tab-actions-move">
+             <i class="fas fa-reply"></i><p>Move tab</p>
+          </div>
+          <div id="js-tab-actions-moveall" style="display: none;">
+             <i class="fas fa-reply-all"></i><p>Move tabs</p>
+          </div>
+        </center>
+      </div>
+
+      <div class="groups">
+        <div id="js-shared-non-sync-tabs-div" class="group-div active">
+          <p id="js-shared-non-sync-tabs-open"></p><i id="js-shared-non-sync-tabs-show" class="fas fa-arrow-right"></i>
+        </div>
+        <div id="js-shared-sync-tabs-div" class="group-div active common">
+          <p id="js-shared-sync-tabs-open"></p><i id="js-shared-sync-tabs-show" class="fas fa-arrow-right"></i>
+        </div>
+        <div id="js-groups-tab">
+          
+        </div>
+
+        <div id="js-create-group" class="adder">
+          <i class="fas fa-plus"></i><p>Create a group</p>
+        </div>
+      </div>
+
     </div>
+    <div class="right">
+
+      <div class="actions">
+        <center>
+          <div id="js-tab-actions-back" class="active">
+             <i class="fas fa-arrow-left"></i>
+          </div>
+          <div id="js-tab-actions-rename">
+            <input id="js-input-rename" type="text" name="Group name"/>
+          </div>
+          <div id="js-tab-actions-clear" class="noactive">
+            <i class="fas fa-minus-circle"></i>
+          </div>
+          <div id="js-tab-actions-delete" class="noactive">
+            <i class="fas fa-trash-alt"></i>
+          </div>
+        </center>
+      </div>
+
+      <div class="groups">
+        <div id="js-group-tabs">
+          
+        </div>
+
+        <p id="js-group-empty-message" class="message">This group is empty</p>
+
+        <div id="js-open-group" class="adder">
+          <i class="fas fa-reply-all"></i><p id="js-open-group-text"></p>
+        </div>
+      </div>
+
+    </div>
+
+
   </main>
 
   <footer>
-    <p>Developped by <a href="https://github.com/clementgre/">Clément Grennerat</a></p>
+    <p>Developped by <a href="https://github.com/clementgre/">Clément Grennerat</a> · <a href="https://github.com/ClementGre/Tabs-Manager">GitHub</a></p>
   </footer>
 
 </body>

@@ -4,6 +4,7 @@
 
 html, body {
   width: 400px;
+  overflow: hidden;
 }
 p{
 	color: #ffffff;
@@ -61,6 +62,7 @@ header p{
 	text-align: center;
 	margin: 3px;
 }
+
 header #js-currentWindowInfo a{
 	background-color: #b70000;
 	opacity: 0.8;
@@ -76,14 +78,62 @@ header #js-currentWindowInfo a:hover{
 	opacity: 1;
 }
 
-header .actions{
-	
+/*//////*/
+/* MAIN */
+/*//////*/
+
+main{
+	width: 800px;
+	height: 450px;
+	padding: 0;
+	display: flex;
+  	transform: translateX(0);
+}
+main.unswitched{
+	animation-name: switch-main-left;
+  	animation-duration: .5s;
+}
+@keyframes switch-main-left{
+  0% {
+	transform: translateX(-50%);
+  }
+  100% {
+  	transform: translateX(0);
+  }
+}
+
+main.switched {
+	animation-name: switch-main-right;
+  	animation-duration: .5s;
+  	transform: translateX(-50%);
+}
+@keyframes switch-main-right{
+  0% {
+  	transform: translateX(0);
+  }
+  100% {
+  	transform: translateX(-50%);
+  }
+}
+
+
+main .left, main .right{
+	margin: 0;
+	padding: 0;
+	height: 450px;
+	width: 800px;
+	background-color: #383a3e;
+	overflow-y: scroll;
+}
+
+main .actions{
 	display: flex;
 	align-items: stretch;
 	justify-content: center;
+	background-color: #7289DA;
 }
-header .actions div{
-	padding: 4px 12px;
+main .actions div{
+	padding: 0 6px;
 	margin: 4px;
 	border-radius: 4px;
 	background-color: #383a3e;
@@ -92,58 +142,73 @@ header .actions div{
 	opacity: 0.8;
 	cursor: pointer;
 }
-header .actions div:hover{
+main .actions div *{
+	line-height: 28px;
+	margin: 0 4px;
+	display: inline-block;
+}
+main .actions div:hover{
 	opacity: 1;
 }
-header .actions div.active{
+main .actions div.active{
 	background-color: #009c1d;
 }
-header .actions div.noactive{
+main .actions div.noactive{
 	background-color: #b70000;
 }
-header .actions i{
+main .actions i{
 	color: white;
 	font-size: 14px;
-	display: inline-block;
-}header .actions p{
+}
+main .actions p{
+	text-align: center;
 	color: white;
 	font-size: 12px;
-	display: inline-block;
 }
-
-/*//////*/
-/* MAIN */
-/*//////*/
-
-main{
-	min-height: 400px;
+main .actions input{
+	height: 28px;
 	background-color: #383a3e;
+	color: white;
+	border: none;
+	border-radius: 4px;
+	margin: 0 -6px;
+	padding: 5px;
+	font-size: 14px;
+	text-align: center;
 }
-main .group-div {
+
+main .groups .group-div {
 	margin: 0;
 	padding: 0;
 	border-bottom: 1px solid #8696a1;
 	display: flex;
 	align-items: stretch;
 	transition: .3s;
+	border-left: 4px solid rgba(0, 0, 0, 0);
 }
-main .group-div.active{
+main .groups .group-div.active{
 	border-left: 4px solid #1fb700;
 }
-main .group-div.common{
+main .groups .group-div.common{
 	/*margin-bottom: 5px;*/
 }
-main p {
+main .groups .group-div p{
 	padding: 5px 15px;
 	margin: 0;
 	font-size: 14px;
 	flex-grow: 4;
 	transition: .3s;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	overflow: hidden;
 }
-main .group-div:hover {
+main .groups .group-div p disc{
+	opacity: 0.7;
+}
+main .groups .group-div:hover {
 	background-color: #1f2225;
 }
-main i {
+main .groups .group-div i{
 	padding: 4px 12px;
 	margin: 3px;
 	float: right;
@@ -153,8 +218,41 @@ main i {
 	transition: .3s;
 	cursor: pointer;
 }
-main i:hover {
+main .groups .group-div i:hover {
 	background-color: #7289DA;
+}
+
+main .groups .message{
+	text-align: center;
+	font-size: 14px;
+	margin: 10px;
+}
+
+main .groups .adder{
+	padding: 4px 10px;
+	margin: 8px auto;
+	width: 150px;
+	border-radius: 4px;
+	background-color: #1f2225;
+	transition: .3s;
+	cursor: pointer;
+	text-align: center;
+}
+main .groups .adder:hover{
+	background-color: #7289DA;
+}
+main .groups .adder i{
+	color: white;
+	font-size: 14px;
+	display: inline-block;
+	margin-right: 4px;
+}
+main .groups .adder p{
+	text-align: center;
+	margin: 3px;
+	color: white;
+	font-size: 14px;
+	display: inline-block;
 }
 
 /*////////*/
@@ -163,10 +261,11 @@ main i:hover {
 
 footer{
 	background-color: #7289DA;
+	z-index: 100;
 }
 footer p{
 	text-align: center;
-	margin: 5px;
+	margin: 3px;
 }
 footer a{
 	color: #ffffff;
