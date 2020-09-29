@@ -11,7 +11,7 @@ var openedTabsIndexes = {};
 
 browser.storage.sync.get().then((data) => {
   browser.storage.sync.set({
-    groupsTabs: (data.groupsTabs.Default == undefined) ? {Default: {}} : data.groupsTabs,
+    groupsTabs: (data.groupsTabs == undefined) ? {Default: {}} : (data.groupsTabs.Default == undefined) ? {Default: {}} : data.groupsTabs,
     sharedSyncTabs: (data.sharedSyncTabs == undefined) ? {} : data.sharedSyncTabs
   }).then(() => {}, (error) => { console.log(error); });
 });
@@ -238,14 +238,13 @@ var forceUpdateAllSavedTabs = function forceUpdateAllSavedTabs(callBack){
 
 // Update a tab and all next tabs (by index) (by re-call)
 var updateNextTab = function updateNextTab(index, supportedWindowId, currentGroup, callBack){
-  console.log("updateTab " + index);
+  console.log("update tab " + index);
   browser.tabs.query({index: index, windowId: supportedWindowId}).then((tabs) => { // Get tabs at index
     var tab = tabs[0]; // get tab from tabs list
     if(tab == undefined){ // id there no have tab at this index...
       deleteNextsSavedTab(index, currentGroup, callBack); // Delete all next tabs with deleteNextsSavedTab() (re-call himself)
       return;
     }
-
     searchSavedTab(currentGroup, tab.index, (tabData) => { // Search Tab saved
 
       saveOrUpdateTab(tab, tabData.index, (tabData.group == undefined) ? currentGroup : tabData.group, () => { // Update Tab
@@ -257,7 +256,7 @@ var updateNextTab = function updateNextTab(index, supportedWindowId, currentGrou
 }
 // Get informations and tabData from tab window index
 var searchSavedTab = function searchSavedTab(currentGroup, totalIndex, callBack){
-
+  console.log("searched tab " + totalIndex);
   browser.storage.local.get().then((data) => { // get local Data
     var sharedNonSyncTabs = data.sharedNonSyncTabs; // get shared non sync tabs list
     var sharedNonSyncLength = Object.keys(sharedNonSyncTabs).length; // get shared non sync tabs length
@@ -332,10 +331,11 @@ var deleteNextsSavedTab = function deleteNextsSavedTab(index, currentGroup, call
 //////////////////////////
 
 browser.tabs.onRemoved.addListener((tabId, removeInfo) => { // Remove Tab
+  var activateListenersLocal = activateListeners;
   browser.storage.local.get().then((data) => { // Get supported Window Id
     if(data.supportedWindowId == removeInfo.windowId){ // Update only if we are in the supported window
       updateAllOpenedTabsIndexes();
-      if(!activateListeners) return;
+      if(!activateListenersLocal) return;
 
       searchSavedTab(data.currentGroup, lastOpenedTabsIndexes[tabId], (tabInfo) => {
         browser.storage.sync.get().then((syncData) => {
@@ -363,8 +363,9 @@ browser.tabs.onRemoved.addListener((tabId, removeInfo) => { // Remove Tab
 });
 
 browser.tabs.onDetached.addListener((tabId, detachInfo) => { // Remove Tab from this Window
+  var activateListenersLocal = activateListeners;
   updateAllOpenedTabsIndexes();
-  if(!activateListeners) return;
+  if(!activateListenersLocal) return;
 
   browser.storage.local.get().then((data) => {
     if(data.supportedWindowId == detachInfo.oldWindowId){ // Remove a tab
@@ -391,16 +392,18 @@ browser.tabs.onDetached.addListener((tabId, detachInfo) => { // Remove Tab from 
 
 });
 browser.tabs.onCreated.addListener((tab) => { // Create Tab
+  var activateListenersLocal = activateListeners;
   browser.storage.local.get().then((data) => { // Get supported Window Id
     if(data.supportedWindowId == tab.windowId){ // Update only if we are in the supported window
       updateAllOpenedTabsIndexes();
-      if(!activateListeners) return;
+      if(!activateListenersLocal) return;
       updateAllSavedTabs();
     }
   }, (error) => { console.log(error); });
 });
 browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => { // Update Tab
-  if(!activateListeners) return;
+  var activateListenersLocal = activateListeners;
+  if(!activateListenersLocal) return;
   if(changeInfo.url != undefined || changeInfo.title != undefined || changeInfo.pinned != undefined){ // Update only if the URL was changed
     browser.storage.local.get().then((data) => { // Get supported Window Id
       if(data.supportedWindowId == tab.windowId){ // Update only if we are in the supported window
@@ -438,8 +441,9 @@ browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => { // Update Tab
   }
 });
 var moveListener = function moveListener(tabId, moveInfo){ // Move Tab
+  var activateListenersLocal = activateListeners;
   updateAllOpenedTabsIndexes();
-  if(!activateListeners){
+  if(!activateListenersLocal){
     console.log("Listeners are disabled...");
     return;
   }
