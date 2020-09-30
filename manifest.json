@@ -5,7 +5,12 @@
   "manifest_version": 2,
   "author": "Clément Grennerat",
   "manifest_version": 2,
-  "name": "Tabs Manager",
+  "name": "Tabs Groups manager",
+
+  "icons": {
+    "64": "res/icon_64.png",
+    "32": "res/icon_32.png"
+  },
 
   "developer": {
     "name": "Clement Grennerat",
@@ -26,8 +31,12 @@
 
   "browser_action": {
     "browser_style": true,
-    "default_title": "Tabs Manager",
-    "default_popup": "index.html"
+    "default_title": "Tabs Groups manager",
+    "default_popup": "index.html",
+    "default_icon": {
+      "64": "res/icon_64.png",
+      "32": "res/icon_32.png"
+    }
   },
 
   "permissions": [
