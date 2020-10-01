@@ -1,5 +1,5 @@
 {
-  "description": "Sync tabs between clients and make custom tabs groups",
+  "description": "Sync tabs between clients and make custom tabs groups.",
   "homepage_url": "https://github.com/clementgre",
   "version": "0.0.1",
   "manifest_version": 2,
@@ -9,7 +9,7 @@
 
   "icons": {
     "64": "res/icon_64.png",
-    "32": "res/icon_32.png"
+    "128": "res/icon_128.png"
   },
 
   "developer": {
@@ -19,7 +19,7 @@
 
   "browser_specific_settings": {
     "gecko": {
-      "id": "tabs.manager@clement.grennerat.fr",
+      "id": "tabs.groups.manager@clement.grennerat.fr",
       "strict_min_version": "71.0"
     }
   },
@@ -35,7 +35,7 @@
     "default_popup": "index.html",
     "default_icon": {
       "64": "res/icon_64.png",
-      "32": "res/icon_32.png"
+      "128": "res/icon_128.png"
     }
   },
 
@@ -47,6 +47,7 @@
     "webRequest",
     "<all_urls>",
     "storage",
-    "unlimitedStorage"
+    "unlimitedStorage",
+    "contextMenus"
     ]
 }

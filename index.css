@@ -221,6 +221,9 @@ main .groups .group-div i{
 main .groups .group-div i:hover {
 	background-color: #7289DA;
 }
+main .groups .group-div:hover i.pre-active {
+	background-color: #7289DA;
+}
 
 main .groups .message{
 	text-align: center;
@@ -270,3 +273,40 @@ footer p{
 footer a{
 	color: #ffffff;
 }
+
+/*//////////////*/
+/* CONTEXT MENU */
+/*//////////////*/
+
+body > .contextmenu{
+	display: none;
+	position: absolute;
+	top: 60px;
+	max-width: 360px;
+	max-height: 430px;
+	overflow-y: scroll;
+	padding: 10px 0;
+	z-index: 500;
+	background-color: #1f2225;
+	border-radius: 5px;
+}
+body > .contextmenu p{
+	padding: 6px 20px;
+	margin: 0;
+	transition: .3s;
+	cursor: pointer;
+}
+body > .contextmenu p:hover{
+	background-color: #7289DA;
+}
+body > .overlay {
+	display: none;
+	z-index: 490;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	opacity: 1;
+}
+

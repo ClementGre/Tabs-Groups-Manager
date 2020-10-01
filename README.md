@@ -1,4 +1,4 @@
-## Tabs Manager <developpement in process>
+## Tabs Manager
 
 This Firefox Add-ons allows you to save, sync and store yours tabs into groups.
 This allows you to sync your tabs between all your computers and to don't lose your tabs when you close Firefox.

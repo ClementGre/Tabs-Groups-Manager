@@ -19,20 +19,20 @@ var restoreSession = function restoreSession(){
 
       activateListeners = false;
 
-      browser.tabs.query({windowId: localData.supportedWindowId}).then((tabs) => { // Get tabs at index
+      browser.tabs.query({windowId: localData.supportedWindowId}).then((tabs) => { // Get tabs
         var tabsArray = [];
         for(let tab of tabs) tabsArray.push(tab.id);
 
-        restoreSharedNonSyncTabs(localData, localData.supportedWindowId);
-        restoreSharedSyncTabs(syncData, localData.supportedWindowId);
-        restoreCurrentGroupTabs(localData, syncData, localData.supportedWindowId);
+        var i = restoreSharedNonSyncTabs(localData, localData.supportedWindowId);
+        i = restoreSharedSyncTabs(syncData, localData.supportedWindowId, i);
+        restoreCurrentGroupTabs(localData, syncData, localData.supportedWindowId, i);
 
         setTimeout(() => {
           browser.tabs.remove(tabsArray).then(() => {
             activateListeners = true;
             updateAllSavedTabs();
           });
-        }, 2000);
+        }, 1000);
 
       });
 
@@ -43,16 +43,21 @@ var restoreSession = function restoreSession(){
 }
 
 function restoreSharedNonSyncTabs(localData, windowId){
+  var i = 0;
   for(let tab of Object.values(localData.sharedNonSyncTabs)){
-    browser.tabs.create({url: tab.url, pinned: true, windowId: windowId}).then(() => {});
+    browser.tabs.create({url: tab.url, pinned: true, windowId: windowId, index: i}).then(() => {});
+    i++;
   }
+  return i;
 }
-function restoreSharedSyncTabs(syncData, windowId){
+function restoreSharedSyncTabs(syncData, windowId, i){
   for(let tab of Object.values(syncData.sharedSyncTabs)){
-    browser.tabs.create({url: tab.url, pinned: true, windowId: windowId}).then(() => {});
+    browser.tabs.create({url: tab.url, pinned: true, windowId: windowId, index: i}).then(() => {});
+    i++;
   }
+  return i;
 }
-function restoreCurrentGroupTabs(localData, syncData, windowId){
+function restoreCurrentGroupTabs(localData, syncData, windowId, i){
   var currentGroup = syncData.groupsTabs[localData.currentGroup];
   if(currentGroup == undefined){
     currentGroup = syncData.groupsTabs[Object.keys(syncData.groupsTabs)[0]];
@@ -60,13 +65,14 @@ function restoreCurrentGroupTabs(localData, syncData, windowId){
       currentGroup: currentGroup
     }).then(() => {}, (error) => { console.log(error); });
   }
-  if(Object.values(currentGroup).length == 0){
+  if(Object.values(currentGroup).length == 0 && i == 0){
     browser.tabs.create({windowId: windowId}).then(() => {});
   }
   for(let tab of Object.values(currentGroup)){
-    browser.tabs.create({url: tab.url, pinned: tab.pinned, windowId: windowId}).then(() => {}, (error) => {
+    browser.tabs.create({url: tab.url, pinned: tab.pinned, windowId: windowId, index: i}).then(() => {}, (error) => {
       browser.tabs.create({windowId: windowId}).then(() => {});
     });
+    i++;
   }
 }
 

@@ -70,10 +70,18 @@ var updateGroupsListPanel = function updateGroupsListPanel(){
     console.log("Opening details page of group No Synced Common");
     updateGroupDetailsPanel("No Synced Common", GROUP_COMMON_NO_SYNC, true);
   }
+  document.getElementById('js-shared-non-sync-tabs-open').onmousedown = () => { // OPEN GROUP
+    console.log("Opening details page of group No Synced Common");
+    updateGroupDetailsPanel("No Synced Common", GROUP_COMMON_NO_SYNC, true);
+  }
 
   document.getElementById("js-shared-sync-tabs-open").innerHTML = 'Synced Common Tabs<disc> · ' + Object.keys(syncData.sharedSyncTabs).length + ' tabs</disc>';
   document.getElementById('js-shared-sync-tabs-div').setAttribute('title', listTabs(syncData.sharedSyncTabs));
   document.getElementById('js-shared-sync-tabs-show').onmousedown = () => { // OPEN GROUP
+    console.log("Opening details page of group Synced Common");
+    updateGroupDetailsPanel("Synced Common", GROUP_COMMON_SYNC, true);
+  }
+  document.getElementById('js-shared-sync-tabs-open').onmousedown = () => { // OPEN GROUP
     console.log("Opening details page of group Synced Common");
     updateGroupDetailsPanel("Synced Common", GROUP_COMMON_SYNC, true);
   }
@@ -90,12 +98,19 @@ var updateGroupsListPanel = function updateGroupsListPanel(){
         '<i id="js-group-' + groupName + '-show" class="fas fa-arrow-right"></i>' +
       '</div>';
     document.getElementById('js-group-' + groupName + '-open').setAttribute('title', listTabs(tabs));
+    if(currentWindowId != localData.supportedWindowId || groupName == localData.currentGroup){
+      document.getElementById('js-group-' + groupName + '-show').setAttribute('class', 'pre-active fas fa-arrow-right');
+    }
 
   }
   for(let groupName of Object.keys(syncData.groupsTabs)){
     
     document.getElementById('js-group-' + groupName + '-open').onmousedown = () => { // LOAD GROUP
-      loadGroup(groupName);
+      if(currentWindowId != localData.supportedWindowId || groupName == localData.currentGroup){
+        updateGroupDetailsPanel(groupName, GROUP_NORMAL, (groupName == "Default"));
+      }else{
+        loadGroup(groupName, () => {});
+      }
     }
     document.getElementById('js-group-' + groupName + '-show').onmousedown = () => { // OPEN GROUP
       console.log("Opening details page of group " + groupName);
@@ -247,11 +262,16 @@ var updateGroupsListPanel = function updateGroupsListPanel(){
         document.getElementById("js-tab-actions-moveall").setAttribute('style', 'display: inline-block;');
       }
 
-      document.getElementById("js-tab-actions-move").onmousedown = () => { // Move current tab into a group
-
+      document.getElementById("js-tab-actions-move").onmousedown = (e) => { // Move current tab into a group
+        browser.tabs.query({active: true, windowId: currentWindowId}).then((currentTabs) => {
+          moveTabsAutoMenu(currentTabs, e.x);
+        });
+        
       };
-      document.getElementById("js-tab-actions-moveall").onmousedown = () => { // Move all tabs into a group
-
+      document.getElementById("js-tab-actions-moveall").onmousedown = (e) => { // Move all tabs into a group
+        browser.tabs.query({windowId: currentWindowId}).then((tabs) => {
+          moveTabsAutoMenu(tabs, e.x);
+        });
       };
     });
   });
@@ -439,16 +459,20 @@ function updateGroupDetailsPanel(group, groupType, isProtectedGroup){
       
       console.log("Deleting group " + group);
       if(localData.currentGroup == group){
-        // switch to default and after delete
+        document.getElementById("mainTag").setAttribute('class', 'unswitched');
+        loadGroup("Default", () => {
+          var groupsTabs = syncData.groupsTabs;
+          delete groupsTabs[group];
+          browser.storage.sync.set({groupsTabs}).then(() => {
+            reload();
+          });
+        });
       }else{
         var groupsTabs = syncData.groupsTabs;
         delete groupsTabs[group];
         browser.storage.sync.set({groupsTabs}).then(() => {
-          browser.storage.sync.get().then((data) => {
-            syncData = data;
-            reload();
-            document.getElementById("mainTag").setAttribute('class', 'unswitched');
-          });
+          document.getElementById("mainTag").setAttribute('class', 'unswitched');
+          reload();
         });
       }
     }
@@ -557,10 +581,77 @@ function closeTabs(tabIds, groupsLength, page){
   }
 }
 
-// CHANGE GROUP FUNCTIONS
+// CHANGE GROUP & ADD TO GROUP FUNCTION
 
-function loadGroup(group){
+function loadGroup(group, callBack){
+  console.log("Loading group " + group + "...");
+  browser.runtime.getBackgroundPage().then((page) => {
+    page.activateListeners = false;
+    browser.storage.local.get().then((localData) => {
+      browser.storage.sync.get().then((syncData) => {
 
+        browser.tabs.query({windowId: localData.supportedWindowId}).then((tabs) => { // Get tabs
+          var tabsArray = [];
+          for(let tab of tabs) tabsArray.push(tab.id);
+
+          var i = 0;
+          for(let tabInfo of Object.values(syncData.groupsTabs[group])){
+            browser.tabs.create({url: tabInfo.url, pinned: tabInfo.pinned, windowId: localData.supportedWindowId, index: i}).then(() => {}, (error) => {
+              browser.tabs.create({windowId: localData.supportedWindowId}).then(() => {});
+            });
+            i++;
+          }
+          if(i == 0){
+            browser.tabs.create({windowId: localData.supportedWindowId}).then(() => {});
+          }
+
+          setTimeout(() => {
+            browser.tabs.remove(tabsArray).then(() => {
+              browser.storage.local.set({currentGroup: group}).then(() => {
+                page.activateListeners = true;
+                page.updateAllSavedTabs();
+                reload();
+                callBack();
+              });
+            });
+          }, 1000);
+
+        });
+
+        browser.browserAction.setBadgeText({text: group.toUpperCase(), windowId: localData.supportedWindowId});
+
+      }, (error) => { console.log(error); });
+    }, (error) => { console.log(error); });
+  });
+}
+
+function addToGroup(group, tabs){
+
+}
+
+function moveTabsAutoMenu(tabs, mouseX){
+
+  document.getElementById("js-contextmenu").innerHTML = '';
+  for(let groupName of Object.keys(syncData.groupsTabs)){
+    document.getElementById("js-contextmenu").innerHTML += '<p id="js-contextmenu-group-' + groupName + '">' + groupName + '</p>';
+  }
+  for(let groupName of Object.keys(syncData.groupsTabs)){
+    document.getElementById('js-contextmenu-group-' + groupName).onmousedown = (e) => { // CLICKING ON A GROUP
+      
+    }
+    document.getElementById('js-overlay').onmousedown = (e) => { // CLICKING ON OVERLAY
+      document.getElementById("js-overlay").setAttribute('style', '');
+      document.getElementById("js-contextmenu").setAttribute('style', '');
+    }
+  }
+
+  document.getElementById("js-overlay").setAttribute('style', 'display: block;');
+  document.getElementById("js-contextmenu").setAttribute('style', 'display: block; left: ' + mouseX + 'px;');
+
+  var width = document.getElementById('js-contextmenu').offsetWidth;
+  if(mouseX + width >= 380) mouseX = 380 - width;
+
+  document.getElementById("js-contextmenu").setAttribute('style', 'display: block; left: ' + mouseX + 'px;');
 }
 
 // OTHERS FUNCTIONS
