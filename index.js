@@ -598,11 +598,12 @@ function loadGroup(group, callBack){
 
         browser.tabs.query({windowId: localData.supportedWindowId}).then((tabs) => { // Get tabs
           var tabsArray = [];
+          var i = Object.keys(localData.sharedNonSyncTabs).length + Object.keys(syncData.sharedSyncTabs).length;
           for(let tab of tabs){
-            if(tab.index >= Object.keys(localData.sharedNonSyncTabs).length + Object.keys(syncData.sharedSyncTabs).length) tabsArray.push(tab.id);
+            if(tab.index >= i) tabsArray.push(tab.id);
           }
 
-          var i = 0;
+          
           for(let tabInfo of Object.values(syncData.groupsTabs[group])){
             browser.tabs.create({url: tabInfo.url, pinned: tabInfo.pinned, windowId: localData.supportedWindowId, index: i}).then(() => {}, (error) => {
               browser.tabs.create({windowId: localData.supportedWindowId}).then(() => {});
