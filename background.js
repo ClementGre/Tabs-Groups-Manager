@@ -25,7 +25,12 @@ var restoreSession = function restoreSession(){
 
         var i = restoreSharedNonSyncTabs(localData, localData.supportedWindowId);
         i = restoreSharedSyncTabs(syncData, localData.supportedWindowId, i);
-        restoreCurrentGroupTabs(localData, syncData, localData.supportedWindowId, i);
+        i = restoreCurrentGroupTabs(localData, syncData, localData.supportedWindowId, i);
+
+        console.log(i);
+        if(i == 0){
+          browser.tabs.create({windowId: localData.supportedWindowId}).then(() => {});
+        }
 
         setTimeout(() => {
           browser.tabs.remove(tabsArray).then(() => {
@@ -45,14 +50,19 @@ var restoreSession = function restoreSession(){
 function restoreSharedNonSyncTabs(localData, windowId){
   var i = 0;
   for(let tab of Object.values(localData.sharedNonSyncTabs)){
-    browser.tabs.create({url: tab.url, pinned: true, windowId: windowId, index: i}).then(() => {});
+    browser.tabs.create({url: tab.url, pinned: true, windowId: windowId, index: i}).then(() => {}, (error) => {
+      browser.tabs.create({windowId: windowId, pinned: true, index: i}).then(() => {});
+    });
     i++;
   }
   return i;
 }
 function restoreSharedSyncTabs(syncData, windowId, i){
   for(let tab of Object.values(syncData.sharedSyncTabs)){
-    browser.tabs.create({url: tab.url, pinned: true, windowId: windowId, index: i}).then(() => {});
+    browser.tabs.create({url: tab.url, pinned: true, windowId: windowId, index: i}).then(() => {}, (error) => {
+      console.log("error");
+      browser.tabs.create({windowId: windowId, pinned: true, index: i}).then(() => {});
+    });
     i++;
   }
   return i;
@@ -65,15 +75,13 @@ function restoreCurrentGroupTabs(localData, syncData, windowId, i){
       currentGroup: currentGroup
     }).then(() => {}, (error) => { console.log(error); });
   }
-  if(Object.values(currentGroup).length == 0 && i == 0){
-    browser.tabs.create({windowId: windowId}).then(() => {});
-  }
   for(let tab of Object.values(currentGroup)){
     browser.tabs.create({url: tab.url, pinned: tab.pinned, windowId: windowId, index: i}).then(() => {}, (error) => {
       browser.tabs.create({windowId: windowId}).then(() => {});
     });
     i++;
   }
+  return i;
 }
 
 //////////////////////////

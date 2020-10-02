@@ -65,7 +65,8 @@ var updateGroupsListPanel = function updateGroupsListPanel(){
 
   // Shared groups | COUNTERS
   document.getElementById("js-shared-non-sync-tabs-open").innerHTML = 'No Synced Common Tabs<disc> · ' + Object.keys(localData.sharedNonSyncTabs).length + ' tabs</disc>';
-  document.getElementById('js-shared-non-sync-tabs-div').setAttribute('title', listTabs(localData.sharedNonSyncTabs));
+  document.getElementById('js-shared-non-sync-tabs-div').setAttribute('title', 'Click to open details\n\n' + listTabs(localData.sharedNonSyncTabs));
+  document.getElementById('js-shared-non-sync-tabs-show').setAttribute('title', 'Click to open details');
   document.getElementById('js-shared-non-sync-tabs-show').onmousedown = () => { // OPEN GROUP
     console.log("Opening details page of group No Synced Common");
     updateGroupDetailsPanel("No Synced Common", GROUP_COMMON_NO_SYNC, true);
@@ -76,7 +77,8 @@ var updateGroupsListPanel = function updateGroupsListPanel(){
   }
 
   document.getElementById("js-shared-sync-tabs-open").innerHTML = 'Synced Common Tabs<disc> · ' + Object.keys(syncData.sharedSyncTabs).length + ' tabs</disc>';
-  document.getElementById('js-shared-sync-tabs-div').setAttribute('title', listTabs(syncData.sharedSyncTabs));
+  document.getElementById('js-shared-sync-tabs-div').setAttribute('title', 'Click to open details\n\n' + listTabs(syncData.sharedSyncTabs));
+  document.getElementById('js-shared-sync-tabs-show').setAttribute('title', 'Click to open details');
   document.getElementById('js-shared-sync-tabs-show').onmousedown = () => { // OPEN GROUP
     console.log("Opening details page of group Synced Common");
     updateGroupDetailsPanel("Synced Common", GROUP_COMMON_SYNC, true);
@@ -97,9 +99,11 @@ var updateGroupsListPanel = function updateGroupsListPanel(){
         '<p id="js-group-' + groupName + '-open">Group ' + groupName + "<disc> · " + Object.keys(tabs).length + ' tabs</disc></p>' +
         '<i id="js-group-' + groupName + '-show" class="fas fa-arrow-right"></i>' +
       '</div>';
-    document.getElementById('js-group-' + groupName + '-open').setAttribute('title', listTabs(tabs));
+    document.getElementById('js-group-' + groupName + '-open').setAttribute('title', 'Click to load group\n\n' + listTabs(tabs));
+    document.getElementById('js-group-' + groupName + '-show').setAttribute('title', 'Click to open details');
     if(currentWindowId != localData.supportedWindowId || groupName == localData.currentGroup){
       document.getElementById('js-group-' + groupName + '-show').setAttribute('class', 'pre-active fas fa-arrow-right');
+      document.getElementById('js-group-' + groupName + '-open').setAttribute('title', 'Click to open details\n\n' + listTabs(tabs));
     }
 
   }
@@ -301,12 +305,13 @@ function updateGroupDetailsPanel(group, groupType, isProtectedGroup){
         '<p id="js-tab-' + index + '-open">' + tabData.title + '</p>' +
         '<i id="js-tab-' + index + '-delete" class="fas fa-trash-alt"></i>' +
       '</div>';
+    document.getElementById('js-tab-' + index + '-delete').setAttribute('title', 'Delete this tab from this group');
   });
   let i = 0;
   Object.keys(groupTabs).forEach(function(index){
     var tabData = groupTabs[index];
 
-    document.getElementById('js-tab-' + index + '-open').setAttribute("title", index + " - " + tabData.url);
+    document.getElementById('js-tab-' + index + '-open').setAttribute("title", 'Click to open this tab\n\n' + tabData.title + '\n' + tabData.url);
 
     document.getElementById('js-tab-' + index + '-open').onmousedown = () => { // Open tab
       if(groupType == GROUP_COMMON_NO_SYNC){
@@ -566,7 +571,7 @@ function closeTabs(tabIds, groupsLength, page){
         setTimeout(function() {
           page.activateListeners = true;
           page.updateAllSavedTabs();
-        }, 2000);
+        }, 1000);
         reload();
       });
     });
@@ -575,7 +580,7 @@ function closeTabs(tabIds, groupsLength, page){
       setTimeout(function() {
           page.activateListeners = true;
           page.updateAllSavedTabs();
-        }, 2000);
+        }, 1000);
       reload();
     });
   }
@@ -586,13 +591,16 @@ function closeTabs(tabIds, groupsLength, page){
 function loadGroup(group, callBack){
   console.log("Loading group " + group + "...");
   browser.runtime.getBackgroundPage().then((page) => {
+    showLoader();
     page.activateListeners = false;
     browser.storage.local.get().then((localData) => {
       browser.storage.sync.get().then((syncData) => {
 
         browser.tabs.query({windowId: localData.supportedWindowId}).then((tabs) => { // Get tabs
           var tabsArray = [];
-          for(let tab of tabs) tabsArray.push(tab.id);
+          for(let tab of tabs){
+            if(tab.index >= Object.keys(localData.sharedNonSyncTabs).length + Object.keys(syncData.sharedSyncTabs).length) tabsArray.push(tab.id);
+          }
 
           var i = 0;
           for(let tabInfo of Object.values(syncData.groupsTabs[group])){
@@ -626,18 +634,48 @@ function loadGroup(group, callBack){
 }
 
 function addToGroup(group, tabs){
+  
 
+  if(group == localData.currentGroup){
+    for(let tab of tabs){
+      browser.tabs.create({url: tab.url, pinned: tab.pinned, windowId: localData.supportedWindowId}).then(() => {});
+    }
+  }else{
+    var groupsTabs = syncData.groupsTabs;
+    var groupTabs = groupsTabs[group];
+    var groupLength = Object.keys(groupTabs).length;
+
+    for(let tab of tabs){
+      groupTabs[groupLength] = {
+        title: tab.title,
+        url: tab.url,
+        pinned: tab.pinned
+      }
+      groupLength++;
+    }
+
+    browser.storage.sync.set({groupsTabs}).then(() => {
+      reload();
+    });
+
+  }
+
+  
 }
 
 function moveTabsAutoMenu(tabs, mouseX){
 
   document.getElementById("js-contextmenu").innerHTML = '';
   for(let groupName of Object.keys(syncData.groupsTabs)){
+    if(groupName == localData.currentGroup && currentWindowId == localData.supportedWindowId) continue;
     document.getElementById("js-contextmenu").innerHTML += '<p id="js-contextmenu-group-' + groupName + '">' + groupName + '</p>';
   }
   for(let groupName of Object.keys(syncData.groupsTabs)){
+    if(groupName == localData.currentGroup && currentWindowId == localData.supportedWindowId) continue;
     document.getElementById('js-contextmenu-group-' + groupName).onmousedown = (e) => { // CLICKING ON A GROUP
-      
+      addToGroup(groupName, tabs);
+      document.getElementById("js-overlay").setAttribute('style', '');
+      document.getElementById("js-contextmenu").setAttribute('style', '');
     }
     document.getElementById('js-overlay').onmousedown = (e) => { // CLICKING ON OVERLAY
       document.getElementById("js-overlay").setAttribute('style', '');

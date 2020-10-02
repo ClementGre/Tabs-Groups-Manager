@@ -35,15 +35,15 @@
       <div class="actions">
         <center>
           <div id="js-tab-actions-sync">
-            <i class="fas fa-sync-alt"></i><p>Don't Sync tab</p>
+            <i class="fas fa-sync-alt" title="Place this tab in a special group named No Synced Common Tabs. Theses tabs are common to all groups (pinned at the left) and they aren't sync between diffrent Firefox clients."></i><p>Don't Sync tab</p>
           </div>
-          <div id="js-tab-actions-common">
+          <div id="js-tab-actions-common" title="Place this tab in a special group named Synced Common Tabs. Theses tabs are common to all groups (pinned at the left) and they are sync between diffrent Firefox clients.">
             <i class="fas fa-thumbtack"></i><p>Common tab</p>
           </div>
-          <div id="js-tab-actions-move">
+          <div id="js-tab-actions-move" title="Move the current tab to a specific group.">
              <i class="fas fa-reply"></i><p>Move tab</p>
           </div>
-          <div id="js-tab-actions-moveall" style="display: none;">
+          <div id="js-tab-actions-moveall" style="display: none;" title="Move all tab in this window to a specific group.">
              <i class="fas fa-reply-all"></i><p>Move tabs</p>
           </div>
         </center>
@@ -70,16 +70,16 @@
 
       <div class="actions">
         <center>
-          <div id="js-tab-actions-back" class="active">
+          <div id="js-tab-actions-back" class="active" title="Back">
              <i class="fas fa-arrow-left"></i>
           </div>
           <div id="js-tab-actions-rename">
             <input id="js-input-rename" type="text" name="Group name"/>
           </div>
-          <div id="js-tab-actions-clear" class="noactive">
+          <div id="js-tab-actions-clear" class="noactive" title="Clear this group's tabs">
             <i class="fas fa-minus-circle"></i>
           </div>
-          <div id="js-tab-actions-delete" class="noactive">
+          <div id="js-tab-actions-delete" class="noactive" title="Delete this group">
             <i class="fas fa-trash-alt"></i>
           </div>
         </center>
