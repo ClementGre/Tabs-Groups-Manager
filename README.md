@@ -1,8 +1,10 @@
-## Tabs Groups Manager
+## Tabs Groups Manager [Firefox Add-Ons](https://addons.mozilla.org/en-US/firefox/addon/tabs-groups-manager/)
 
 This Firefox Add-ons allows you to save, sync and store yours tabs into groups.
 This allows you to sync your tabs between all your computers (with Firefox sync) and to don't lose your tabs when you close Firefox.
 You can create groups of tabs : you are always on a group and all tabs are sync to the current group. 
+
+You can install this extension via the [Firefox Add-Ons](https://addons.mozilla.org/en-US/firefox/addon/tabs-groups-manager/) website.
 
 ## Features
 
