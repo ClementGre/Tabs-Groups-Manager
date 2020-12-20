@@ -1,3 +1,5 @@
+![Firefox Add-Ons Stars](https://img.shields.io/amo/stars/tabs-groups-manager)
+
 ## Tabs Groups Manager [Firefox Add-Ons](https://addons.mozilla.org/en-US/firefox/addon/tabs-groups-manager/)
 
 This Firefox Add-ons allows you to save, sync and store yours tabs into groups.
