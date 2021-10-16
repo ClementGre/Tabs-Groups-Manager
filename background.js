@@ -2,10 +2,10 @@
 const GROUP_COMMON_NO_SYNC = 1;
 const GROUP_COMMON_SYNC = 2;
 
-var activateListeners = true;
-var tabsProcess = []; // Prevent repeating events system
-var lastOpenedTabsIndexes = {};
-var openedTabsIndexes = {};
+let activateListeners = true;
+let tabsProcess = []; // Prevent repeating events system
+let lastOpenedTabsIndexes = {};
+let openedTabsIndexes = {};
 
 ///////////////////////////
 ///// RESTORE SESSION /////
@@ -13,17 +13,17 @@ var openedTabsIndexes = {};
 
 browser.browserAction.setBadgeBackgroundColor({color: "#4967cf"});
 
-var restoreSession = function restoreSession(){
+let restoreSession = function restoreSession(){
   browser.storage.local.get().then((localData) => {
     browser.storage.sync.get().then((syncData) => {
 
       activateListeners = false;
 
       browser.tabs.query({windowId: localData.supportedWindowId}).then((tabs) => { // Get tabs
-        var tabsArray = [];
+        let tabsArray = [];
         for(let tab of tabs) tabsArray.push(tab.id);
 
-        var i = restoreSharedNonSyncTabs(localData, localData.supportedWindowId);
+        let i = restoreSharedNonSyncTabs(localData, localData.supportedWindowId);
         i = restoreSharedSyncTabs(syncData, localData.supportedWindowId, i);
         i = restoreCurrentGroupTabs(localData, syncData, localData.supportedWindowId, i);
 
@@ -48,7 +48,7 @@ var restoreSession = function restoreSession(){
 }
 
 function restoreSharedNonSyncTabs(localData, windowId){
-  var i = 0;
+  let i = 0;
   for(let tab of Object.values(localData.sharedNonSyncTabs)){
     browser.tabs.create({url: tab.url, pinned: true, windowId: windowId, index: i}).then(() => {}, (error) => {
       browser.tabs.create({windowId: windowId, pinned: true, index: i}).then(() => {});
@@ -68,7 +68,7 @@ function restoreSharedSyncTabs(syncData, windowId, i){
   return i;
 }
 function restoreCurrentGroupTabs(localData, syncData, windowId, i){
-  var currentGroup = syncData.groupsTabs[localData.currentGroup];
+  let currentGroup = syncData.groupsTabs[localData.currentGroup];
   if(currentGroup == undefined){
     currentGroup = syncData.groupsTabs[Object.keys(syncData.groupsTabs)[0]];
     browser.storage.local.set({
@@ -89,14 +89,14 @@ function restoreCurrentGroupTabs(localData, syncData, windowId, i){
 //////////////////////////
 
 // Create or update a saved tab by it's group and index
-var saveOrUpdateTab = function saveOrUpdateTab(tab, index, group, callBack){
+let saveOrUpdateTab = function saveOrUpdateTab(tab, index, group, callBack){
   if(tabsProcess.includes(tab.id)) return; // Return if a process with this tab is already launched
   tabsProcess.push(tab.id); // Add this tab in the list of the current tab process
 
   if(group === GROUP_COMMON_NO_SYNC){ // Group Common No Sync
 
     browser.storage.local.get().then((data) => { // Get saved Data
-      var sharedNonSyncTabs = data.sharedNonSyncTabs; // Get tabs list from data
+      let sharedNonSyncTabs = data.sharedNonSyncTabs; // Get tabs list from data
       sharedNonSyncTabs[index+''] = { // Update tab at the specified index
         url: tab.url,
         title: tab.title
@@ -109,7 +109,7 @@ var saveOrUpdateTab = function saveOrUpdateTab(tab, index, group, callBack){
   }else if(group === GROUP_COMMON_SYNC){ // Group Common Sync
 
     browser.storage.sync.get().then((data) => { // Get saved Data
-      var sharedSyncTabs = data.sharedSyncTabs; // Get tabs list from data
+      let sharedSyncTabs = data.sharedSyncTabs; // Get tabs list from data
       sharedSyncTabs[index+''] = { // Update tab at the specified index
         url: tab.url,
         title: tab.title
@@ -122,7 +122,7 @@ var saveOrUpdateTab = function saveOrUpdateTab(tab, index, group, callBack){
   }else{ // Custom group
 
     browser.storage.sync.get().then((data) => { // Get saved Data
-      var groupsTabs = data.groupsTabs; // Get tabs list from data
+      let groupsTabs = data.groupsTabs; // Get tabs list from data
       groupsTabs[group][index+''] = { // Update tab at the specified index
         url: tab.url,
         title: tab.title,
@@ -138,7 +138,7 @@ var saveOrUpdateTab = function saveOrUpdateTab(tab, index, group, callBack){
 
 // Create or update saved tab by providing the tab Object
 // This function uses searchSavedTab to determine the group index and tab group with the tab index 
-var saveOrUpdateSavedTabByTab = function saveOrUpdateSavedTabByTab(tab){
+let saveOrUpdateSavedTabByTab = function saveOrUpdateSavedTabByTab(tab){
   
   browser.storage.local.get().then((localData) => { // Get local data to get the currentGroup
     searchSavedTab(localData.currentGroup, tab.index, (tabData) => { // Search Tab saved
@@ -153,8 +153,8 @@ var saveOrUpdateSavedTabByTab = function saveOrUpdateSavedTabByTab(tab){
 }
 
 // get currentGroup to call updateNextTab() which will re-call himself for all tabs of the supported window.
-var isUpdateAllSavedTabsActive = 0;
-var updateAllSavedTabs = function updateAllSavedTabs(){
+let isUpdateAllSavedTabsActive = 0;
+let updateAllSavedTabs = function updateAllSavedTabs(){
   if(isUpdateAllSavedTabsActive > 0){
     console.log("updateAlSavedTabsIsActive counter = " + isUpdateAllSavedTabsActive);
     isUpdateAllSavedTabsActive++;
@@ -173,7 +173,7 @@ var updateAllSavedTabs = function updateAllSavedTabs(){
     });
   });
 }
-var updateAllOpenedTabsIndexes = function updateAllOpenedTabsIndexes(){
+let updateAllOpenedTabsIndexes = function updateAllOpenedTabsIndexes(){
   browser.storage.local.get().then((localData) => { // Get the current group
     browser.tabs.query({windowId: localData.supportedWindowId}).then((tabs) => { // Get tabs at index
       lastOpenedTabsIndexes = openedTabsIndexes;
@@ -185,7 +185,7 @@ var updateAllOpenedTabsIndexes = function updateAllOpenedTabsIndexes(){
   });
 }
 
-var forceUpdateAllSavedTabs = function forceUpdateAllSavedTabs(callBack){
+let forceUpdateAllSavedTabs = function forceUpdateAllSavedTabs(callBack){
   console.log("///// START UPDATE ALL /////");
 
   browser.storage.local.get().then((localData) => { // Get the current group
@@ -197,10 +197,10 @@ var forceUpdateAllSavedTabs = function forceUpdateAllSavedTabs(callBack){
 }
 
 // Update a tab and all next tabs (by index) (by re-call)
-var updateNextTab = function updateNextTab(index, supportedWindowId, currentGroup, callBack){
+let updateNextTab = function updateNextTab(index, supportedWindowId, currentGroup, callBack){
   console.log("update tab " + index);
   browser.tabs.query({index: index, windowId: supportedWindowId}).then((tabs) => { // Get tabs at index
-    var tab = tabs[0]; // get tab from tabs list
+    let tab = tabs[0]; // get tab from tabs list
     if(tab == undefined){ // id here no have tab at this index...
       deleteNextsSavedTab(index, currentGroup, callBack); // Delete all next tabs with deleteNextsSavedTab()
       return;
@@ -215,23 +215,23 @@ var updateNextTab = function updateNextTab(index, supportedWindowId, currentGrou
   });
 }
 // Get informations and tabData from tab window index
-var searchSavedTab = function searchSavedTab(currentGroup, totalIndex, callBack){
+let searchSavedTab = function searchSavedTab(currentGroup, totalIndex, callBack){
   console.log("searched tab " + totalIndex);
   browser.storage.local.get().then((data) => { // get local Data
-    var sharedNonSyncTabs = data.sharedNonSyncTabs; // get shared non sync tabs list
-    var sharedNonSyncLength = Object.keys(sharedNonSyncTabs).length; // get shared non sync tabs length
+    let sharedNonSyncTabs = data.sharedNonSyncTabs; // get shared non sync tabs list
+    let sharedNonSyncLength = Object.keys(sharedNonSyncTabs).length; // get shared non sync tabs length
 
-    var index = totalIndex; // for shared non sync tabs, the group index is the same than the window index
+    let index = totalIndex; // for shared non sync tabs, the group index is the same than the window index
     if(index < sharedNonSyncLength && index >= 0){ // if index < this group length : tab are in the shared non sync group
       console.log(totalIndex + " is " + index + "/Common Non Sync");
       callBack({group: GROUP_COMMON_NO_SYNC, index: index, tab: sharedNonSyncTabs[index+'']}) // CallBack with infos
     }else{
       browser.storage.sync.get().then((data2) => { // Get synced data to request shared sync & curent group
         // get the list & length of the current & common sync groups
-        var sharedSyncTabs = data2.sharedSyncTabs;
-        var sharedSyncLength = Object.keys(sharedSyncTabs).length;
-        var groupTabs = data2.groupsTabs[currentGroup];
-        var groupLength = Object.keys(groupTabs).length;
+        let sharedSyncTabs = data2.sharedSyncTabs;
+        let sharedSyncLength = Object.keys(sharedSyncTabs).length;
+        let groupTabs = data2.groupsTabs[currentGroup];
+        let groupLength = Object.keys(groupTabs).length;
 
         index -= sharedNonSyncLength; // The group index of the common/shared sync group is the window index - the size of the first group
         if(index < sharedSyncLength && index >= 0){ // Check if the tab is in the common sync group by the tab index and group size
@@ -255,16 +255,16 @@ var searchSavedTab = function searchSavedTab(currentGroup, totalIndex, callBack)
   }, (error) => { console.log(error); });
 
 }
-var countListsItems = function countListsItems(callBack){
+let countListsItems = function countListsItems(callBack){
   browser.storage.local.get().then((data) => {
     browser.storage.sync.get().then((data2) => {
 
-      var sharedNonSyncTabs = data.sharedNonSyncTabs;
-      var sharedNonSyncLength = Object.keys(sharedNonSyncTabs).length;
-      var sharedSyncTabs = data2.sharedSyncTabs;
-      var sharedSyncLength = Object.keys(sharedSyncTabs).length;
-      var groupTabs = data2.groupsTabs[data.currentGroup];
-      var groupLength = Object.keys(groupTabs).length;
+      let sharedNonSyncTabs = data.sharedNonSyncTabs;
+      let sharedNonSyncLength = Object.keys(sharedNonSyncTabs).length;
+      let sharedSyncTabs = data2.sharedSyncTabs;
+      let sharedSyncLength = Object.keys(sharedSyncTabs).length;
+      let groupTabs = data2.groupsTabs[data.currentGroup];
+      let groupLength = Object.keys(groupTabs).length;
 
       callBack(sharedNonSyncLength, sharedSyncLength, groupLength);
 
@@ -272,7 +272,7 @@ var countListsItems = function countListsItems(callBack){
   }, (error) => { console.log(error); });
 }
 // Delete saved tabs with an index >= x
-var deleteNextsSavedTab = function deleteNextsSavedTab(index, currentGroup, callBack){
+let deleteNextsSavedTab = function deleteNextsSavedTab(index, currentGroup, callBack){
   console.log("deleteTab " + index);
 
   countListsItems((sharedNonSyncLength, sharedSyncLength, groupLength) => {
@@ -280,8 +280,8 @@ var deleteNextsSavedTab = function deleteNextsSavedTab(index, currentGroup, call
 
       browser.storage.local.get().then((data) => { // Get saved Data
 
-        var groupTabs = data.sharedNonSyncTabs;
-        var newGroupTabs = {}; var tabsCount = Object.keys(groupTabs).length; var i = 0; var newI = 0;
+        let groupTabs = data.sharedNonSyncTabs;
+        let newGroupTabs = {}; let tabsCount = Object.keys(groupTabs).length; let i = 0; let newI = 0;
         while(tabsCount > 0){
           if(groupTabs[i] != undefined){
             if(newI < index) newGroupTabs[newI] = groupTabs[i];
@@ -301,8 +301,8 @@ var deleteNextsSavedTab = function deleteNextsSavedTab(index, currentGroup, call
       browser.storage.sync.get().then((data) => {
 
         index -= (sharedNonSyncLength);
-        var groupTabs = data.sharedSyncTabs;
-        var newGroupTabs = {}; var tabsCount = Object.keys(groupTabs).length; var i = 0; var newI = 0;
+        let groupTabs = data.sharedSyncTabs;
+        let newGroupTabs = {}; let tabsCount = Object.keys(groupTabs).length; let i = 0; let newI = 0;
         while(tabsCount > 0){
           if(groupTabs[i] != undefined){
             if(newI < index) newGroupTabs[newI] = groupTabs[i];
@@ -322,8 +322,8 @@ var deleteNextsSavedTab = function deleteNextsSavedTab(index, currentGroup, call
       browser.storage.sync.get().then((data) => {
 
         index -= (sharedNonSyncLength + sharedSyncLength);
-        var groupTabs = data.groupsTabs[currentGroup];
-        var newGroupTabs = {}; var tabsCount = Object.keys(groupTabs).length; var i = 0; var newI = 0;
+        let groupTabs = data.groupsTabs[currentGroup];
+        let newGroupTabs = {}; let tabsCount = Object.keys(groupTabs).length; let i = 0; let newI = 0;
         while(tabsCount > 0){
           if(groupTabs[i] != undefined){
             if(newI < index) newGroupTabs[newI] = groupTabs[i];
@@ -335,7 +335,7 @@ var deleteNextsSavedTab = function deleteNextsSavedTab(index, currentGroup, call
           return;
         }
         groupTabs = newGroupTabs;
-        var groupsTabs = data.groupsTabs;
+        let groupsTabs = data.groupsTabs;
         groupsTabs[currentGroup] = groupTabs;
 
         browser.storage.sync.set({groupsTabs}).then(() => { callBack(); }, (error) => { console.log(error); });
@@ -349,7 +349,7 @@ var deleteNextsSavedTab = function deleteNextsSavedTab(index, currentGroup, call
 //////////////////////////
 
 browser.tabs.onRemoved.addListener((tabId, removeInfo) => { // Remove Tab
-  var activateListenersLocal = activateListeners;
+  let activateListenersLocal = activateListeners;
   if(removeInfo.isWindowClosing) return;
   browser.storage.local.get().then((data) => { // Get supported Window Id
     if(data.supportedWindowId == removeInfo.windowId){ // Update only if we are in the supported window
@@ -382,7 +382,7 @@ browser.tabs.onRemoved.addListener((tabId, removeInfo) => { // Remove Tab
 });
 
 browser.tabs.onDetached.addListener((tabId, detachInfo) => { // Remove Tab from this Window
-  var activateListenersLocal = activateListeners;
+  let activateListenersLocal = activateListeners;
   updateAllOpenedTabsIndexes();
   if(!activateListenersLocal) return;
 
@@ -411,7 +411,7 @@ browser.tabs.onDetached.addListener((tabId, detachInfo) => { // Remove Tab from 
 
 });
 browser.tabs.onCreated.addListener((tab) => { // Create Tab
-  var activateListenersLocal = activateListeners;
+  let activateListenersLocal = activateListeners;
   browser.storage.local.get().then((data) => { // Get supported Window Id
     if(data.supportedWindowId == tab.windowId){ // Update only if we are in the supported window
       updateAllOpenedTabsIndexes();
@@ -421,7 +421,7 @@ browser.tabs.onCreated.addListener((tab) => { // Create Tab
   }, (error) => { console.log(error); });
 });
 browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => { // Update Tab
-  var activateListenersLocal = activateListeners;
+  let activateListenersLocal = activateListeners;
   if(!activateListenersLocal) return;
   if(changeInfo.url != undefined || changeInfo.title != undefined || changeInfo.pinned != undefined){ // Update only if the URL was changed
     browser.storage.local.get().then((data) => { // Get supported Window Id
@@ -459,8 +459,8 @@ browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => { // Update Tab
     }, (error) => { console.log(error); });
   }
 });
-var moveListener = function moveListener(tabId, moveInfo){ // Move Tab
-  var activateListenersLocal = activateListeners;
+let moveListener = function moveListener(tabId, moveInfo){ // Move Tab
+  let activateListenersLocal = activateListeners;
   updateAllOpenedTabsIndexes();
   if(!activateListenersLocal){
     console.log("Listeners are disabled...");
@@ -530,7 +530,7 @@ browser.storage.sync.get().then((syncData) => {
     browser.storage.local.get().then((localData) => {
       browser.windows.getAll({windowTypes: ["normal"]}).then((windows) => {
         
-        var group = localData.currentGroup;
+        let group = localData.currentGroup;
         if(syncData.groupsTabs == undefined) group = "Default";
         else if(syncData.groupsTabs[group] == undefined) group = "Default";
 
@@ -554,12 +554,12 @@ browser.storage.sync.get().then((syncData) => {
 /////////////////
 
 function editListsSizes(localData, syncData, sharedNonSync, sharedSync, callBack){
-  var sharedSyncTabs = syncData.sharedSyncTabs;
-  var sharedSyncLength = Object.keys(sharedSyncTabs).length;
-  var sharedNonSyncTabs = localData.sharedNonSyncTabs;
-  var sharedNonSyncLength = Object.keys(sharedNonSyncTabs).length;
+  let sharedSyncTabs = syncData.sharedSyncTabs;
+  let sharedSyncLength = Object.keys(sharedSyncTabs).length;
+  let sharedNonSyncTabs = localData.sharedNonSyncTabs;
+  let sharedNonSyncLength = Object.keys(sharedNonSyncTabs).length;
 
-  if(sharedNonSync != 0){
+  if(sharedNonSync !== 0){
     if(sharedNonSync < 0){
       delete sharedNonSyncTabs[(sharedNonSyncLength-1)+''];
     }else{
@@ -567,7 +567,7 @@ function editListsSizes(localData, syncData, sharedNonSync, sharedSync, callBack
     }
     browser.storage.local.set({sharedNonSyncTabs}).then(() => {
 
-      if(sharedSync != 0){
+      if(sharedSync !== 0){
         if(sharedSync < 0){
           delete sharedSyncTabs[(sharedSyncLength-1)+''];
         }else{
@@ -579,7 +579,7 @@ function editListsSizes(localData, syncData, sharedNonSync, sharedSync, callBack
       }else callBack();
 
     });
-  }else if(sharedSync != 0){
+  }else if(sharedSync !== 0){
 
     if(sharedSync < 0){
       delete sharedSyncTabs[(sharedSyncLength-1)+''];

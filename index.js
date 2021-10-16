@@ -3,18 +3,18 @@ const GROUP_COMMON_NO_SYNC = 1;
 const GROUP_COMMON_SYNC = 2;
 const GROUP_NORMAL = 0;
 
-var currentWindowId;
+let currentWindowId;
 browser.windows.getCurrent().then((window) => {
   currentWindowId = window.id;
 });
 
-var lastGroup;
-var lastGroupType;
-var lastIsProtectedGroup;
+let lastGroup;
+let lastGroupType;
+let lastIsProtectedGroup;
 
-var currentTab;
-var localData = {};
-var syncData = {};
+let currentTab;
+let localData = {};
+let syncData = {};
 setInterval(() => {
   browser.storage.sync.get().then((newSyncData) => {
     if(JSON.stringify(newSyncData) !== JSON.stringify(syncData)) reload();
@@ -33,13 +33,13 @@ setInterval(() => {
 
 }, 1000);
 
-var updateGroupsListPanel = function updateGroupsListPanel(){
+let updateGroupsListPanel = function updateGroupsListPanel(){
   console.log(localData);
   console.log(syncData);
 
   // Current window info
 
-  if(localData.supportedWindowId == currentWindowId){
+  if(localData.supportedWindowId === currentWindowId){
     document.getElementById("js-currentWindowInfo").innerHTML = "Tabs are synchronysed in this window. " + '<a id="js-currentWindowInfo-unsync">Disable</a>';
     document.getElementById("js-currentWindowInfo-unsync").onmousedown = () => {
       browser.storage.local.set({supportedWindowId: -1}).then(() => {
@@ -51,8 +51,8 @@ var updateGroupsListPanel = function updateGroupsListPanel(){
   }else{
     document.getElementById("js-currentWindowInfo").innerHTML = "Tabs are not synchronysed to this window. " + '<a id="js-currentWindowInfo-sync">Enable</a>'
     document.getElementById("js-currentWindowInfo-sync").onmousedown = () => {
-      var r = confirm("All the tabs of this window will be replaced by the groups tabs.");
-      if(r == true){
+      let r = confirm("All the tabs of this window will be replaced by the groups tabs.");
+      if(r === true){
         browser.storage.local.set({supportedWindowId: currentWindowId}).then(() => {
           window.location.href = window.location.pathname + window.location.search + window.location.hash;
           browser.runtime.getBackgroundPage().then((page) => {
@@ -93,7 +93,7 @@ var updateGroupsListPanel = function updateGroupsListPanel(){
   document.getElementById("js-groups-tab").innerHTML = '';
   for(let groupName of Object.keys(syncData.groupsTabs)){
 
-    var tabs = syncData.groupsTabs[groupName];
+    let tabs = syncData.groupsTabs[groupName];
     document.getElementById("js-groups-tab").innerHTML += 
       '<div id="js-group-' + groupName + '-div" class="group-div ' + ((groupName == localData.currentGroup) ? 'active' : '') + '">' +
         '<p id="js-group-' + groupName + '-open">Group ' + groupName + "<disc> · " + Object.keys(tabs).length + ' tabs</disc></p>' +
@@ -128,9 +128,9 @@ var updateGroupsListPanel = function updateGroupsListPanel(){
   // Create group
 
   document.getElementById("js-create-group").onmousedown = () => { // CREATE GROUP
-    var groupsTabs = syncData.groupsTabs;
+    let groupsTabs = syncData.groupsTabs;
 
-    var name = window.prompt("Choose the group name", "New Group");
+    let name = window.prompt("Choose the group name", "New Group");
     while(name != null && name != ''){
       
       if(groupsTabs[name] == undefined){
@@ -160,7 +160,7 @@ var updateGroupsListPanel = function updateGroupsListPanel(){
           document.getElementById("js-tab-actions-common").onmousedown = () => { // From Common Sync to Group
 
             page.countListsItems((sharedNonSyncLength, sharedSyncLength, groupLength) => {
-              var targetIndex = sharedNonSyncLength + sharedSyncLength - 1;
+              let targetIndex = sharedNonSyncLength + sharedSyncLength - 1;
 
               page.activateListeners = false;
               browser.tabs.update(currentTab.id, {pinned: false}).then(() => {
@@ -175,7 +175,7 @@ var updateGroupsListPanel = function updateGroupsListPanel(){
           document.getElementById("js-tab-actions-sync").onmousedown = () => { // From Common Sync to Common no Sync
 
             page.countListsItems((sharedNonSyncLength, sharedSyncLength, groupLength) => {
-              var targetIndex = sharedNonSyncLength;
+              let targetIndex = sharedNonSyncLength;
 
               page.activateListeners = false;
               browser.tabs.update(currentTab.id, {pinned: true}).then(() => {
@@ -196,7 +196,7 @@ var updateGroupsListPanel = function updateGroupsListPanel(){
           document.getElementById("js-tab-actions-common").onmousedown = () => { // From Common no Sync to Group
 
             page.countListsItems((sharedNonSyncLength, sharedSyncLength, groupLength) => {
-              var targetIndex = sharedNonSyncLength + sharedSyncLength - 1;
+              let targetIndex = sharedNonSyncLength + sharedSyncLength - 1;
 
               page.activateListeners = false;
               browser.tabs.update(currentTab.id, {pinned: false}).then(() => {
@@ -212,7 +212,7 @@ var updateGroupsListPanel = function updateGroupsListPanel(){
           document.getElementById("js-tab-actions-sync").onmousedown = () => { // From Common no Sync to Common Sync
 
             page.countListsItems((sharedNonSyncLength, sharedSyncLength, groupLength) => {
-              var targetIndex = sharedNonSyncLength - 1;
+              let targetIndex = sharedNonSyncLength - 1;
 
               page.activateListeners = false;
               browser.tabs.update(currentTab.id, {pinned: true}).then(() => {
@@ -231,7 +231,7 @@ var updateGroupsListPanel = function updateGroupsListPanel(){
 
           document.getElementById("js-tab-actions-common").onmousedown = () => { // From group to Common Sync
             page.countListsItems((sharedNonSyncLength, sharedSyncLength, groupLength) => {
-              var targetIndex = sharedNonSyncLength + sharedSyncLength;
+              let targetIndex = sharedNonSyncLength + sharedSyncLength;
 
               page.activateListeners = false;
               browser.tabs.update(currentTab.id, {pinned: true}).then(() => {
@@ -247,7 +247,7 @@ var updateGroupsListPanel = function updateGroupsListPanel(){
           document.getElementById("js-tab-actions-sync").onmousedown = () => { // From Group to Common no sync
 
             page.countListsItems((sharedNonSyncLength, sharedSyncLength, groupLength) => {
-              var targetIndex = sharedNonSyncLength;
+              let targetIndex = sharedNonSyncLength;
 
               page.activateListeners = false;
               browser.tabs.update(currentTab.id, {pinned: true}).then(() => {
@@ -291,15 +291,16 @@ function updateGroupDetailsPanel(group, groupType, isProtectedGroup){
   
   document.getElementById("js-group-tabs").innerHTML = '';
 
+  let groupTabs;
   if(groupType == GROUP_COMMON_NO_SYNC){
-    var groupTabs = localData.sharedNonSyncTabs;
+    groupTabs = localData.sharedNonSyncTabs;
   }else if(groupType == GROUP_COMMON_SYNC){
-    var groupTabs = syncData.sharedSyncTabs;
+    groupTabs = syncData.sharedSyncTabs;
   }else{
-    var groupTabs = syncData.groupsTabs[group];
+    groupTabs = syncData.groupsTabs[group];
   }
   Object.keys(groupTabs).forEach(function(index){
-    var tabData = groupTabs[index];
+    let tabData = groupTabs[index];
     document.getElementById("js-group-tabs").innerHTML += 
       '<div id="js-tab-' + index + '-div" class="group-div ' + (tabData.pinned ? 'active' : '') + '">' +
         '<p id="js-tab-' + index + '-open">' + tabData.title + '</p>' +
@@ -309,7 +310,7 @@ function updateGroupDetailsPanel(group, groupType, isProtectedGroup){
   });
   let i = 0;
   Object.keys(groupTabs).forEach(function(index){
-    var tabData = groupTabs[index];
+    let tabData = groupTabs[index];
 
     document.getElementById('js-tab-' + index + '-open').setAttribute("title", 'Click to open this tab\n\n' + tabData.title + '\n' + tabData.url);
 
@@ -337,7 +338,7 @@ function updateGroupDetailsPanel(group, groupType, isProtectedGroup){
 
     if(groupType == GROUP_COMMON_NO_SYNC){
       document.getElementById('js-tab-' + index + '-delete').onmousedown = () => { // Delete tab (common no sync)
-        var sharedNonSyncTabs = localData.sharedNonSyncTabs;
+        let sharedNonSyncTabs = localData.sharedNonSyncTabs;
         delete sharedNonSyncTabs[index];
         getCloseVars((page, sharedNonSyncLength, sharedSyncLength, groupLength, tabs) => {
           reorganizeAndUpdateGroup(sharedNonSyncTabs, GROUP_COMMON_NO_SYNC, null, null, () => {
@@ -348,7 +349,7 @@ function updateGroupDetailsPanel(group, groupType, isProtectedGroup){
       }
     }else if(groupType == GROUP_COMMON_SYNC){
       document.getElementById('js-tab-' + index + '-delete').onmousedown = () => { // Delete tab (common sync)
-        var sharedSyncTabs = syncData.sharedSyncTabs;
+        let sharedSyncTabs = syncData.sharedSyncTabs;
         delete sharedSyncTabs[index];
         getCloseVars((page, sharedNonSyncLength, sharedSyncLength, groupLength, tabs) => {
           reorganizeAndUpdateGroup(sharedSyncTabs, GROUP_COMMON_SYNC, null, null, () => {
@@ -359,7 +360,7 @@ function updateGroupDetailsPanel(group, groupType, isProtectedGroup){
       }
     }else{
       document.getElementById('js-tab-' + index + '-delete').onmousedown = () => { // Delete tab (normal group)
-        var groupsTabs = syncData.groupsTabs;
+        let groupsTabs = syncData.groupsTabs;
         delete groupsTabs[group][index];
         getCloseVars((page, sharedNonSyncLength, sharedSyncLength, groupLength, tabs) => {
           reorganizeAndUpdateGroup(groupsTabs[group], GROUP_NORMAL, group, groupsTabs, () => {
@@ -417,33 +418,33 @@ function updateGroupDetailsPanel(group, groupType, isProtectedGroup){
   }
   if(groupType == GROUP_COMMON_NO_SYNC){
     document.getElementById("js-tab-actions-clear").onmousedown = () => { // Clear group (commom no sync)
-      var sharedNonSyncTabs = localData.sharedNonSyncTabs;
+      let sharedNonSyncTabs = localData.sharedNonSyncTabs;
       sharedNonSyncTabs = {};
       getCloseVars((page, sharedNonSyncLength, sharedSyncLength, groupLength, tabs) => {
         reorganizeAndUpdateGroup(sharedNonSyncTabs, GROUP_COMMON_NO_SYNC, null, null, () => {
-          var toClose = []; for(let tab of tabs){ if(tab.index < sharedNonSyncLength) toClose.push(tab.id); }
+          let toClose = []; for(let tab of tabs){ if(tab.index < sharedNonSyncLength) toClose.push(tab.id); }
           closeTabs(toClose, sharedNonSyncLength+sharedSyncLength+groupLength, page);
         });
       });
     }
   }else if(groupType == GROUP_COMMON_SYNC){
     document.getElementById("js-tab-actions-clear").onmousedown = () => { // Clear group (common sync)
-      var sharedSyncTabs = syncData.sharedSyncTabs;
+      let sharedSyncTabs = syncData.sharedSyncTabs;
       sharedSyncTabs = {};
       getCloseVars((page, sharedNonSyncLength, sharedSyncLength, groupLength, tabs) => {
         reorganizeAndUpdateGroup(sharedSyncTabs, GROUP_COMMON_SYNC, null, null, () => {
-          var toClose = []; for(let tab of tabs){ if(tab.index >= sharedNonSyncLength && tab.index < (sharedNonSyncLength+sharedSyncLength)) toClose.push(tab.id); }
+          let toClose = []; for(let tab of tabs){ if(tab.index >= sharedNonSyncLength && tab.index < (sharedNonSyncLength+sharedSyncLength)) toClose.push(tab.id); }
           closeTabs(toClose, sharedNonSyncLength+sharedSyncLength+groupLength, page);
         });
       });
     }
   }else{
     document.getElementById("js-tab-actions-clear").onmousedown = () => { // Clear group (normal group)
-      var groupsTabs = syncData.groupsTabs;
+      let groupsTabs = syncData.groupsTabs;
       groupsTabs[group] = {};
       getCloseVars((page, sharedNonSyncLength, sharedSyncLength, groupLength, tabs) => {
         reorganizeAndUpdateGroup(groupsTabs[group], GROUP_NORMAL, group, groupsTabs, () => {
-          var toClose = []; for(let tab of tabs){ if(tab.index >= sharedNonSyncLength+sharedSyncLength) toClose.push(tab.id); }
+          let toClose = []; for(let tab of tabs){ if(tab.index >= sharedNonSyncLength+sharedSyncLength) toClose.push(tab.id); }
           closeTabs(toClose, sharedNonSyncLength+sharedSyncLength+groupLength, page);
         });
       });
@@ -466,14 +467,14 @@ function updateGroupDetailsPanel(group, groupType, isProtectedGroup){
       if(localData.currentGroup == group){
         document.getElementById("mainTag").setAttribute('class', 'unswitched');
         loadGroup("Default", () => {
-          var groupsTabs = syncData.groupsTabs;
+          let groupsTabs = syncData.groupsTabs;
           delete groupsTabs[group];
           browser.storage.sync.set({groupsTabs}).then(() => {
             reload();
           });
         });
       }else{
-        var groupsTabs = syncData.groupsTabs;
+        let groupsTabs = syncData.groupsTabs;
         delete groupsTabs[group];
         browser.storage.sync.set({groupsTabs}).then(() => {
           document.getElementById("mainTag").setAttribute('class', 'unswitched');
@@ -482,10 +483,10 @@ function updateGroupDetailsPanel(group, groupType, isProtectedGroup){
       }
     }
     document.getElementById("js-input-rename").addEventListener('change', () => { // Update group name
-      var name = document.getElementById("js-input-rename").value;
+      let name = document.getElementById("js-input-rename").value;
       if(lastGroup != group) return;
 
-      var groupsTabs = syncData.groupsTabs;
+      let groupsTabs = syncData.groupsTabs;
       if(name != '' && groupsTabs[name] == undefined){
         groupsTabs[name] = groupsTabs[group];
         delete groupsTabs[group];
@@ -519,7 +520,7 @@ function updateGroupDetailsPanel(group, groupType, isProtectedGroup){
 function reorganizeAndUpdateGroup(groupTabs, groupType, groupName, groupData, callBack){
   console.log("Clearing group " + lastGroup);
 
-  var newGroupTabs = {}; var tabsCount = Object.keys(groupTabs).length; var i = 0; var newI = 0;
+  let newGroupTabs = {}; let tabsCount = Object.keys(groupTabs).length; let i = 0; let newI = 0;
   while(tabsCount > 0){
     if(groupTabs[i] != undefined){
       newGroupTabs[newI] = groupTabs[i];
@@ -597,8 +598,8 @@ function loadGroup(group, callBack){
       browser.storage.sync.get().then((syncData) => {
 
         browser.tabs.query({windowId: localData.supportedWindowId}).then((tabs) => { // Get tabs
-          var tabsArray = [];
-          var i = Object.keys(localData.sharedNonSyncTabs).length + Object.keys(syncData.sharedSyncTabs).length;
+          let tabsArray = [];
+          let i = Object.keys(localData.sharedNonSyncTabs).length + Object.keys(syncData.sharedSyncTabs).length;
           for(let tab of tabs){
             if(tab.index >= i) tabsArray.push(tab.id);
           }
@@ -642,9 +643,9 @@ function addToGroup(group, tabs){
       browser.tabs.create({url: tab.url, pinned: tab.pinned, windowId: localData.supportedWindowId}).then(() => {});
     }
   }else{
-    var groupsTabs = syncData.groupsTabs;
-    var groupTabs = groupsTabs[group];
-    var groupLength = Object.keys(groupTabs).length;
+    let groupsTabs = syncData.groupsTabs;
+    let groupTabs = groupsTabs[group];
+    let groupLength = Object.keys(groupTabs).length;
 
     for(let tab of tabs){
       groupTabs[groupLength] = {
@@ -687,7 +688,7 @@ function moveTabsAutoMenu(tabs, mouseX){
   document.getElementById("js-overlay").setAttribute('style', 'display: block;');
   document.getElementById("js-contextmenu").setAttribute('style', 'display: block; left: ' + mouseX + 'px;');
 
-  var width = document.getElementById('js-contextmenu').offsetWidth;
+  let width = document.getElementById('js-contextmenu').offsetWidth;
   if(mouseX + width >= 380) mouseX = 380 - width;
 
   document.getElementById("js-contextmenu").setAttribute('style', 'display: block; left: ' + mouseX + 'px;');
@@ -696,10 +697,10 @@ function moveTabsAutoMenu(tabs, mouseX){
 // OTHERS FUNCTIONS
 
 function editListsSizes(page, localData, syncData, sharedNonSync, sharedSync){
-  var sharedSyncTabs = syncData.sharedSyncTabs;
-  var sharedSyncLength = Object.keys(sharedSyncTabs).length;
-  var sharedNonSyncTabs = localData.sharedNonSyncTabs;
-  var sharedNonSyncLength = Object.keys(sharedNonSyncTabs).length;
+  let sharedSyncTabs = syncData.sharedSyncTabs;
+  let sharedSyncLength = Object.keys(sharedSyncTabs).length;
+  let sharedNonSyncTabs = localData.sharedNonSyncTabs;
+  let sharedNonSyncLength = Object.keys(sharedNonSyncTabs).length;
 
   if(sharedNonSync != 0){
     if(sharedNonSync < 0){
@@ -778,7 +779,7 @@ function reloadAll(group, groupType, isProtectedGroup){
 }
 
 function listTabs(tabs){
-  var tabsText = "";
+  let tabsText = "";
   Object.keys(tabs).forEach((tabIndex) => {(tabs[tabIndex] != undefined) ? (tabsText += tabIndex + " - " + tabs[tabIndex].title + "\n") : (tabsText += tabIndex + " - undefined" + "\n")});
   if(tabsText == "") tabsText = "Empty";
   return tabsText;

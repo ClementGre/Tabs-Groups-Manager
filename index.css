@@ -2,9 +2,23 @@
 /* CSS INIT */
 /*//////////*/
 
+body{
+	--background: #2b2a33;
+	--secondary-back: #1c1b22;
+
+	--primary: #42414d;
+	--secondary: #7289DA;
+
+	--green: #00861c;
+	--red: #b40000;
+}
+
 html, body {
-  width: 400px;
-  overflow: hidden;
+  	width: 400px;
+  	overflow: hidden;
+	margin: 0;
+	padding: 0;
+	font-family: "Segoe UI", "San Francisco", "Ubuntu", "Fira Sans", "Roboto", "Arial", "Helvetica", sans-serif;
 }
 p{
 	color: #ffffff;
@@ -56,7 +70,10 @@ body > .loader .loader-bar{
 /*////////*/
 
 header{
-	background-color: #7289DA;
+	background-color: var(--secondary-back);
+	font-size: 12px;
+	padding-top: 2px;
+	overflow: auto;
 }
 header p{
 	text-align: center;
@@ -64,7 +81,7 @@ header p{
 }
 
 header #js-currentWindowInfo a{
-	background-color: #b70000;
+	background-color: var(--red);
 	opacity: 0.8;
 	padding: 1px 3px;
 	border-radius: 2px;
@@ -72,7 +89,7 @@ header #js-currentWindowInfo a{
 	cursor: pointer;
 }
 header #js-currentWindowInfo a#js-currentWindowInfo-sync{
-	background-color: #009c1d;
+	background-color: var(--green);
 }
 header #js-currentWindowInfo a:hover{
 	opacity: 1;
@@ -84,6 +101,7 @@ header #js-currentWindowInfo a:hover{
 
 main{
 	width: 800px;
+	max-width: 800px;
 	height: 450px;
 	padding: 0;
 	display: flex;
@@ -91,7 +109,7 @@ main{
 }
 main.unswitched{
 	animation-name: switch-main-left;
-  	animation-duration: .5s;
+  	animation-duration: .3s;
 }
 @keyframes switch-main-left{
   0% {
@@ -104,7 +122,7 @@ main.unswitched{
 
 main.switched {
 	animation-name: switch-main-right;
-  	animation-duration: .5s;
+  	animation-duration: .3s;
   	transform: translateX(-50%);
 }
 @keyframes switch-main-right{
@@ -121,22 +139,22 @@ main .left, main .right{
 	margin: 0;
 	padding: 0;
 	height: 450px;
-	width: 800px;
-	background-color: #383a3e;
-	overflow-y: scroll;
+	width: 400px;
+	background-color: var(--background);
+	overflow-y: auto;
 }
 
 main .actions{
 	display: flex;
 	align-items: stretch;
 	justify-content: center;
-	background-color: #7289DA;
+	background-color: var(--secondary-back);
 }
 main .actions div{
 	padding: 0 6px;
 	margin: 4px;
 	border-radius: 4px;
-	background-color: #383a3e;
+	background-color: var(--primary);
 	transition: .3s;
 	display: inline-block;
 	opacity: 0.8;
@@ -151,10 +169,10 @@ main .actions div:hover{
 	opacity: 1;
 }
 main .actions div.active{
-	background-color: #009c1d;
+	background-color: var(--green);
 }
 main .actions div.noactive{
-	background-color: #b70000;
+	background-color: var(--red);
 }
 main .actions i{
 	color: white;
@@ -167,12 +185,11 @@ main .actions p{
 }
 main .actions input{
 	height: 28px;
-	background-color: #383a3e;
+	background-color: var(--primary);
 	color: white;
 	border: none;
 	border-radius: 4px;
 	margin: 0 -6px;
-	padding: 5px;
 	font-size: 14px;
 	text-align: center;
 }
@@ -187,7 +204,7 @@ main .groups .group-div {
 	border-left: 4px solid rgba(0, 0, 0, 0);
 }
 main .groups .group-div.active{
-	border-left: 4px solid #1fb700;
+	border-left: 4px solid var(--green);
 }
 main .groups .group-div.common{
 	/*margin-bottom: 5px;*/
@@ -206,23 +223,23 @@ main .groups .group-div p disc{
 	opacity: 0.7;
 }
 main .groups .group-div:hover {
-	background-color: #1f2225;
+	background-color: var(--secondary-back);
 }
 main .groups .group-div i{
 	padding: 4px 12px;
 	margin: 3px;
 	float: right;
 	color: white;
-	background-color: #1f2225;
+	background-color: var(--secondary-back);
 	border-radius: 4px;
 	transition: .3s;
 	cursor: pointer;
 }
 main .groups .group-div i:hover {
-	background-color: #7289DA;
+	background-color: var(--secondary);
 }
 main .groups .group-div:hover i.pre-active {
-	background-color: #7289DA;
+	background-color: var(--secondary);
 }
 
 main .groups .message{
@@ -242,7 +259,7 @@ main .groups .adder{
 	text-align: center;
 }
 main .groups .adder:hover{
-	background-color: #7289DA;
+	background-color: var(--secondary);
 }
 main .groups .adder i{
 	color: white;
@@ -263,15 +280,17 @@ main .groups .adder p{
 /*////////*/
 
 footer{
-	background-color: #7289DA;
+	background-color: var(--secondary-back);
 	z-index: 100;
+	font-size: 12px;
+	overflow: auto;
 }
 footer p{
 	text-align: center;
 	margin: 3px;
 }
 footer a{
-	color: #ffffff;
+	color: white;
 }
 
 /*//////////////*/
@@ -284,10 +303,10 @@ body > .contextmenu{
 	top: 60px;
 	max-width: 360px;
 	max-height: 430px;
-	overflow-y: scroll;
+	overflow-y: auto;
 	padding: 10px 0;
 	z-index: 500;
-	background-color: #1f2225;
+	background-color: var(--secondary-back);
 	border-radius: 5px;
 }
 body > .contextmenu p{
@@ -297,7 +316,7 @@ body > .contextmenu p{
 	cursor: pointer;
 }
 body > .contextmenu p:hover{
-	background-color: #7289DA;
+	background-color: var(--secondary);
 }
 body > .overlay {
 	display: none;

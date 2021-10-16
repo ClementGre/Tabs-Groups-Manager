@@ -1,7 +1,7 @@
 {
   "description": "Sync tabs between clients and make custom tabs groups.",
   "homepage_url": "https://github.com/clementgre",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "manifest_version": 2,
   "author": "Clément Grennerat",
   "name": "Tabs Groups Manager",
