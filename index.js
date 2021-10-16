@@ -56,6 +56,7 @@ let updateGroupsListPanel = function updateGroupsListPanel(){
         browser.storage.local.set({supportedWindowId: currentWindowId}).then(() => {
           window.location.href = window.location.pathname + window.location.search + window.location.hash;
           browser.runtime.getBackgroundPage().then((page) => {
+            console.log("Restore session from enabling sync")
             page.restoreSession();
           });
         }, (error) => { console.log(error); }); 
@@ -150,8 +151,9 @@ let updateGroupsListPanel = function updateGroupsListPanel(){
   // Actions buttons
 
   browser.runtime.getBackgroundPage().then((page) => {
+
     page.searchSavedTab(localData.currentGroup, currentTab.index, (savedTabData) => {
-      if(currentWindowId == localData.supportedWindowId){
+      if(currentWindowId === localData.supportedWindowId){
         if(savedTabData.group === GROUP_COMMON_SYNC){
 
           document.getElementById("js-tab-actions-common").setAttribute('class', 'active');

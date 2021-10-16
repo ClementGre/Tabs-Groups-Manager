@@ -1,8 +1,9 @@
+import * as restore from "./restore.js";
 
 const GROUP_COMMON_NO_SYNC = 1;
 const GROUP_COMMON_SYNC = 2;
 
-let activateListeners = true;
+window.activateListeners = true;
 let tabsProcess = []; // Prevent repeating events system
 let lastOpenedTabsIndexes = {};
 let openedTabsIndexes = {};
@@ -11,77 +12,10 @@ let openedTabsIndexes = {};
 ///// RESTORE SESSION /////
 ///////////////////////////
 
-browser.browserAction.setBadgeBackgroundColor({color: "#4967cf"});
+await browser.browserAction.setBadgeBackgroundColor({color: "#313236"});
 
-let restoreSession = function restoreSession(){
-  browser.storage.local.get().then((localData) => {
-    browser.storage.sync.get().then((syncData) => {
-
-      activateListeners = false;
-
-      browser.tabs.query({windowId: localData.supportedWindowId}).then((tabs) => { // Get tabs
-        let tabsArray = [];
-        for(let tab of tabs) tabsArray.push(tab.id);
-
-        let i = restoreSharedNonSyncTabs(localData, localData.supportedWindowId);
-        i = restoreSharedSyncTabs(syncData, localData.supportedWindowId, i);
-        i = restoreCurrentGroupTabs(localData, syncData, localData.supportedWindowId, i);
-
-        console.log(i);
-        if(i == 0){
-          browser.tabs.create({windowId: localData.supportedWindowId}).then(() => {});
-        }
-
-        setTimeout(() => {
-          browser.tabs.remove(tabsArray).then(() => {
-            activateListeners = true;
-            updateAllSavedTabs();
-          });
-        }, 1000);
-
-      });
-
-      browser.browserAction.setBadgeText({text: localData.currentGroup.toUpperCase(), windowId: localData.supportedWindowId});
-
-    }, (error) => { console.log(error); });
-  }, (error) => { console.log(error); });
-}
-
-function restoreSharedNonSyncTabs(localData, windowId){
-  let i = 0;
-  for(let tab of Object.values(localData.sharedNonSyncTabs)){
-    browser.tabs.create({url: tab.url, pinned: true, windowId: windowId, index: i}).then(() => {}, (error) => {
-      browser.tabs.create({windowId: windowId, pinned: true, index: i}).then(() => {});
-    });
-    i++;
-  }
-  return i;
-}
-function restoreSharedSyncTabs(syncData, windowId, i){
-  for(let tab of Object.values(syncData.sharedSyncTabs)){
-    browser.tabs.create({url: tab.url, pinned: true, windowId: windowId, index: i}).then(() => {}, (error) => {
-      console.log("error");
-      browser.tabs.create({windowId: windowId, pinned: true, index: i}).then(() => {});
-    });
-    i++;
-  }
-  return i;
-}
-function restoreCurrentGroupTabs(localData, syncData, windowId, i){
-  let currentGroup = syncData.groupsTabs[localData.currentGroup];
-  if(currentGroup == undefined){
-    currentGroup = syncData.groupsTabs[Object.keys(syncData.groupsTabs)[0]];
-    browser.storage.local.set({
-      currentGroup: currentGroup
-    }).then(() => {}, (error) => { console.log(error); });
-  }
-  for(let tab of Object.values(currentGroup)){
-    browser.tabs.create({url: tab.url, pinned: tab.pinned, windowId: windowId, index: i}).then(() => {}, (error) => {
-      browser.tabs.create({windowId: windowId}).then(() => {});
-    });
-    i++;
-  }
-  return i;
+window.restoreSession = function restoreSession() {
+  restore.restore().then(() => {}, (error) => console.error(error))
 }
 
 //////////////////////////
@@ -154,7 +88,7 @@ let saveOrUpdateSavedTabByTab = function saveOrUpdateSavedTabByTab(tab){
 
 // get currentGroup to call updateNextTab() which will re-call himself for all tabs of the supported window.
 let isUpdateAllSavedTabsActive = 0;
-let updateAllSavedTabs = function updateAllSavedTabs(){
+window.updateAllSavedTabs = function updateAllSavedTabs(){
   if(isUpdateAllSavedTabsActive > 0){
     console.log("updateAlSavedTabsIsActive counter = " + isUpdateAllSavedTabsActive);
     isUpdateAllSavedTabsActive++;
@@ -185,7 +119,7 @@ let updateAllOpenedTabsIndexes = function updateAllOpenedTabsIndexes(){
   });
 }
 
-let forceUpdateAllSavedTabs = function forceUpdateAllSavedTabs(callBack){
+window.forceUpdateAllSavedTabs = function forceUpdateAllSavedTabs(callBack){
   console.log("///// START UPDATE ALL /////");
 
   browser.storage.local.get().then((localData) => { // Get the current group
@@ -215,7 +149,7 @@ let updateNextTab = function updateNextTab(index, supportedWindowId, currentGrou
   });
 }
 // Get informations and tabData from tab window index
-let searchSavedTab = function searchSavedTab(currentGroup, totalIndex, callBack){
+window.searchSavedTab = function searchSavedTab(currentGroup, totalIndex, callBack){
   console.log("searched tab " + totalIndex);
   browser.storage.local.get().then((data) => { // get local Data
     let sharedNonSyncTabs = data.sharedNonSyncTabs; // get shared non sync tabs list
@@ -255,7 +189,7 @@ let searchSavedTab = function searchSavedTab(currentGroup, totalIndex, callBack)
   }, (error) => { console.log(error); });
 
 }
-let countListsItems = function countListsItems(callBack){
+window.countListsItems = function countListsItems(callBack){
   browser.storage.local.get().then((data) => {
     browser.storage.sync.get().then((data2) => {
 
@@ -600,3 +534,5 @@ function arrayRemove(arr, value) {
     return ele != value;
   });
 }
+
+export default {activateListeners, updateAllSavedTabs};
