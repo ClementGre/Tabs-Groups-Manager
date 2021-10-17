@@ -15,7 +15,9 @@ window.lastOpenedTabsIndexes = {};
 ///// RESTORE SESSION /////
 ///////////////////////////
 
-await browser.browserAction.setBadgeBackgroundColor({color: "#313236"});
+(async () => {
+  await browser.browserAction.setBadgeBackgroundColor({color: "#313236"});
+})()
 
 window.restoreSession = function restoreSession() {
   restore.restore().then(() => {}, (error) => console.error(error))
