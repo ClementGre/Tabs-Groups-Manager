@@ -26,7 +26,7 @@ async function restore(){
     }
 
     if(needToLoadTabs){
-        window.activateListeners = false;
+        window.enableListeners = false;
 
         // In case at least one tab has to open
         for(let i = 0; i < tabsToLoad.length; i++){
@@ -44,13 +44,12 @@ async function restore(){
         }
 
         console.log("Loaded ", tabsToLoad.length, " tabs");
-        await browser.browserAction.setBadgeText({text: localData.currentGroup.toUpperCase(), windowId: localData.supportedWindowId});
-
-        window.activateListeners = true;
+        window.enableListeners = true;
     }else{
         console.log("Tabs already loaded")
     }
-    window.updateAllSavedTabs();
+    await browser.browserAction.setBadgeText({text: localData.currentGroup.toUpperCase(), windowId: localData.supportedWindowId});
+    await window.updateAllSavedTabs();
 
 }
 export {restore};

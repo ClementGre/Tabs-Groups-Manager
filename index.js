@@ -112,20 +112,18 @@ let updateGroupsListPanel = function updateGroupsListPanel(){
     
     document.getElementById('js-group-' + groupName + '-open').onmousedown = () => { // LOAD GROUP
       if(currentWindowId !== localData.supportedWindowId || groupName === localData.currentGroup){
-        updateGroupDetailsPanel(groupName, GROUP_NORMAL, (groupName ==="Default"));
+        updateGroupDetailsPanel(groupName, GROUP_NORMAL, (groupName === "Default"));
       }else{
-        loadGroup(groupName, () => {});
+        loadGroup(groupName).then(() => {});
       }
     }
     document.getElementById('js-group-' + groupName + '-show').onmousedown = () => { // OPEN GROUP
       console.log("Opening details page of group " + groupName);
-      updateGroupDetailsPanel(groupName, GROUP_NORMAL, (groupName ==="Default"));
+      updateGroupDetailsPanel(groupName, GROUP_NORMAL, (groupName === "Default"));
     }
 
   }
-
-
-
+  
   // Create group
 
   document.getElementById("js-create-group").onmousedown = () => { // CREATE GROUP
@@ -152,7 +150,7 @@ let updateGroupsListPanel = function updateGroupsListPanel(){
 
   browser.runtime.getBackgroundPage().then((page) => {
 
-    page.searchSavedTab(localData.currentGroup, currentTab.index, (savedTabData) => {
+    page.searchSavedTab(localData.currentGroup, currentTab.index).then((savedTabData) => {
       if(currentWindowId === localData.supportedWindowId){
         if(savedTabData.group === GROUP_COMMON_SYNC){
 
@@ -161,31 +159,33 @@ let updateGroupsListPanel = function updateGroupsListPanel(){
 
           document.getElementById("js-tab-actions-common").onmousedown = () => { // From Common Sync to Group
 
-            page.countListsItems((sharedNonSyncLength, sharedSyncLength) => {
+            page.countListsLengths((sharedNonSyncLength, sharedSyncLength) => {
               let targetIndex = sharedNonSyncLength + sharedSyncLength - 1;
 
-              page.activateListeners = false;
+              page.enableListeners = false;
               browser.tabs.update(currentTab.id, {pinned: false}).then(() => {
                 browser.tabs.move([currentTab.id], {index: targetIndex}).then(() => {
-                  page.activateListeners = true;
-                  editListsSizes(page, localData, syncData, 0, -1);
-                }, (error) => { console.log(error); page.activateListeners = true; });
-              }, (error) => { console.log(error); page.activateListeners = true; });
+                  page.enableListeners = true;
+                  page.editGroupListSize(syncData, GROUP_COMMON_SYNC, false).then(() => reload())
+                }, (error) => { console.log(error); page.enableListeners = true; });
+              }, (error) => { console.log(error); page.enableListeners = true; });
 
             });
           };
           document.getElementById("js-tab-actions-sync").onmousedown = () => { // From Common Sync to Common no Sync
 
-            page.countListsItems((sharedNonSyncLength) => {
+            page.countListsLengths((sharedNonSyncLength) => {
               let targetIndex = sharedNonSyncLength;
 
-              page.activateListeners = false;
+              page.enableListeners = false;
               browser.tabs.update(currentTab.id, {pinned: true}).then(() => {
                 browser.tabs.move([currentTab.id], {index: targetIndex}).then(() => {
-                  page.activateListeners = true;
-                  editListsSizes(page, localData, syncData, 1, -1);
-                }, (error) => { console.log(error); page.activateListeners = true; });
-              }, (error) => { console.log(error); page.activateListeners = true; });
+                  page.enableListeners = true;
+                  page.editGroupListSize(syncData, GROUP_COMMON_SYNC, false).then(() => {
+                    page.editGroupListSize(localData, GROUP_COMMON_NO_SYNC, true).then(() => reload())
+                  })
+                }, (error) => { console.log(error); page.enableListeners = true; });
+              }, (error) => { console.log(error); page.enableListeners = true; });
 
             });
           };
@@ -197,32 +197,33 @@ let updateGroupsListPanel = function updateGroupsListPanel(){
 
           document.getElementById("js-tab-actions-common").onmousedown = () => { // From Common no Sync to Group
 
-            page.countListsItems((sharedNonSyncLength, sharedSyncLength) => {
+            page.countListsLengths((sharedNonSyncLength, sharedSyncLength) => {
               let targetIndex = sharedNonSyncLength + sharedSyncLength - 1;
 
-              page.activateListeners = false;
+              page.enableListeners = false;
               browser.tabs.update(currentTab.id, {pinned: false}).then(() => {
                 browser.tabs.move([currentTab.id], {index: targetIndex}).then(() => {
-                  page.activateListeners = true;
-                  editListsSizes(page, localData, syncData, -1, 0);
-                }, (error) => { console.log(error); page.activateListeners = true; });
-              }, (error) => { console.log(error); page.activateListeners = true; });
+                  page.enableListeners = true;
+                  page.editGroupListSize(localData, GROUP_COMMON_NO_SYNC, false).then(() => reload())
+                }, (error) => { console.log(error); page.enableListeners = true; });
+              }, (error) => { console.log(error); page.enableListeners = true; });
 
             });
           };
 
           document.getElementById("js-tab-actions-sync").onmousedown = () => { // From Common no Sync to Common Sync
 
-            page.countListsItems((sharedNonSyncLength) => {
+            page.countListsLengths((sharedNonSyncLength) => {
               let targetIndex = sharedNonSyncLength - 1;
 
-              page.activateListeners = false;
+              page.enableListeners = false;
               browser.tabs.update(currentTab.id, {pinned: true}).then(() => {
                 browser.tabs.move([currentTab.id], {index: targetIndex}).then(() => {
-                  page.activateListeners = true;
-                  editListsSizes(page, localData, syncData, -1, 1);
-                }, (error) => { console.log(error); page.activateListeners = true; });
-              }, (error) => { console.log(error); page.activateListeners = true; });
+                  page.enableListeners = true;
+                  page.editGroupListSize(localData, GROUP_COMMON_NO_SYNC, false).then(() => reload())
+                  page.editGroupListSize(syncData, GROUP_COMMON_SYNC, true).then(() => reload())
+                }, (error) => { console.log(error); page.enableListeners = true; });
+              }, (error) => { console.log(error); page.enableListeners = true; });
 
             });
           };
@@ -232,32 +233,32 @@ let updateGroupsListPanel = function updateGroupsListPanel(){
           document.getElementById("js-tab-actions-sync").setAttribute('class', 'noactive');
 
           document.getElementById("js-tab-actions-common").onmousedown = () => { // From group to Common Sync
-            page.countListsItems((sharedNonSyncLength, sharedSyncLength) => {
+            page.countListsLengths((sharedNonSyncLength, sharedSyncLength) => {
               let targetIndex = sharedNonSyncLength + sharedSyncLength;
 
-              page.activateListeners = false;
+              page.enableListeners = false;
               browser.tabs.update(currentTab.id, {pinned: true}).then(() => {
                 browser.tabs.move([currentTab.id], {index: targetIndex}).then(() => {
-                  page.activateListeners = true;
-                  editListsSizes(page, localData, syncData, 0, 1);
-                }, (error) => { console.log(error); page.activateListeners = true; });
-              }, (error) => { console.log(error); page.activateListeners = true; });
+                  page.enableListeners = true;
+                  page.editGroupListSize(syncData, GROUP_COMMON_SYNC, true).then(() => reload())
+                }, (error) => { console.log(error); page.enableListeners = true; });
+              }, (error) => { console.log(error); page.enableListeners = true; });
 
             });
           };
           
           document.getElementById("js-tab-actions-sync").onmousedown = () => { // From Group to Common no sync
 
-            page.countListsItems((sharedNonSyncLength) => {
+            page.countListsLengths((sharedNonSyncLength) => {
               let targetIndex = sharedNonSyncLength;
 
-              page.activateListeners = false;
+              page.enableListeners = false;
               browser.tabs.update(currentTab.id, {pinned: true}).then(() => {
                 browser.tabs.move([currentTab.id], {index: targetIndex}).then(() => {
-                  page.activateListeners = true;
-                  editListsSizes(page, localData, syncData, 1, 0);
-                }, (error) => { console.log(error); page.activateListeners = true; });
-              }, (error) => { console.log(error); page.activateListeners = true; });
+                  page.enableListeners = true;
+                  page.editGroupListSize(localData, GROUP_COMMON_NO_SYNC, true).then(() => reload())
+                }, (error) => { console.log(error); page.enableListeners = true; });
+              }, (error) => { console.log(error); page.enableListeners = true; });
 
             });
           };
@@ -409,7 +410,7 @@ function updateGroupDetailsPanel(group, groupType, isProtectedGroup){
   }else{
     document.getElementById("js-open-group-text").innerHTML = "Load group";
     document.getElementById("js-open-group").onmousedown = () => { // Load Group
-      loadGroup(group);
+      loadGroup(group).then(() => {})
     }
     
   }
@@ -466,15 +467,16 @@ function updateGroupDetailsPanel(group, groupType, isProtectedGroup){
     document.getElementById("js-tab-actions-delete").onmousedown = () => { // Delete group
       
       console.log("Deleting group " + group);
-      if(localData.currentGroup ===group){
+      if(localData.currentGroup === group){
         document.getElementById("mainTag").setAttribute('class', 'unswitched');
-        loadGroup("Default", () => {
+        loadGroup("Default").then(() => {
           let groupsTabs = syncData.groupsTabs;
           delete groupsTabs[group];
           browser.storage.sync.set({groupsTabs}).then(() => {
             reload();
           });
         });
+        
       }else{
         let groupsTabs = syncData.groupsTabs;
         delete groupsTabs[group];
@@ -489,10 +491,10 @@ function updateGroupDetailsPanel(group, groupType, isProtectedGroup){
       if(lastGroup !== group) return;
 
       let groupsTabs = syncData.groupsTabs;
-      if(name !== '' && groupsTabs[name] ===undefined){
+      if(name !== '' && groupsTabs[name] === undefined){
         groupsTabs[name] = groupsTabs[group];
         delete groupsTabs[group];
-        if(localData.currentGroup ===group){
+        if(localData.currentGroup === group){
           browser.storage.local.set({currentGroup: name}).then(() => {
             browser.storage.local.get().then((data) => {
               localData = data;
@@ -534,23 +536,23 @@ function reorganizeAndUpdateGroup(groupTabs, groupType, groupName, groupData, ca
 
   if(groupType ===GROUP_COMMON_NO_SYNC) browser.storage.local.set({sharedNonSyncTabs: groupTabs}).then(() => {
     reload();
-    if(localData.currentGroup ===lastGroup || lastGroupType ===GROUP_COMMON_SYNC || lastGroupType ===GROUP_COMMON_NO_SYNC) callBack();
+    if(localData.currentGroup === lastGroup || lastGroupType === GROUP_COMMON_SYNC || lastGroupType === GROUP_COMMON_NO_SYNC) callBack();
   });
-  if(groupType ===GROUP_COMMON_SYNC) browser.storage.sync.set({sharedSyncTabs: groupTabs}).then(() => {
+  if(groupType === GROUP_COMMON_SYNC) browser.storage.sync.set({sharedSyncTabs: groupTabs}).then(() => {
     reload();
-    if(localData.currentGroup ===lastGroup || lastGroupType ===GROUP_COMMON_SYNC || lastGroupType ===GROUP_COMMON_NO_SYNC) callBack();
+    if(localData.currentGroup === lastGroup || lastGroupType === GROUP_COMMON_SYNC || lastGroupType === GROUP_COMMON_NO_SYNC) callBack();
   });
-  if(groupType ===GROUP_NORMAL){
+  if(groupType === GROUP_NORMAL){
     groupData[groupName] = groupTabs; browser.storage.sync.set({groupsTabs: groupData}).then(() => {
       reload();
-      if(localData.currentGroup ===lastGroup || lastGroupType ===GROUP_COMMON_SYNC || lastGroupType ===GROUP_COMMON_NO_SYNC) callBack();
+      if(localData.currentGroup === lastGroup || lastGroupType === GROUP_COMMON_SYNC || lastGroupType === GROUP_COMMON_NO_SYNC) callBack();
     });
   } 
 
 }
 function getCloseVars(callBack, tabIndex, previousGroups){
   browser.runtime.getBackgroundPage().then((page) => {
-    page.countListsItems((sharedNonSyncLength, sharedSyncLength, groupLength) => {
+    page.countListsLengths((sharedNonSyncLength, sharedSyncLength, groupLength) => {
       if(tabIndex !== null){
         if(previousGroups >= 1) tabIndex += sharedNonSyncLength;
         if(previousGroups >= 2) tabIndex += sharedSyncLength;
@@ -567,12 +569,12 @@ function getCloseVars(callBack, tabIndex, previousGroups){
 }
 function closeTabs(tabIds, groupsLength, page){
   console.log("Clearing tabs of group " + lastGroup);
-  page.activateListeners = false;
+  page.enableListeners = false;
   if(groupsLength <= tabIds.length){
     browser.tabs.create({}).then(() => {
       browser.tabs.remove(tabIds).then(() => {
         setTimeout(function() {
-          page.activateListeners = true;
+          page.enableListeners = true;
           page.updateAllSavedTabs();
         }, 1000);
         reload();
@@ -581,7 +583,7 @@ function closeTabs(tabIds, groupsLength, page){
   }else{
     browser.tabs.remove(tabIds).then(() => {
       setTimeout(function() {
-          page.activateListeners = true;
+          page.enableListeners = true;
           page.updateAllSavedTabs();
         }, 1000);
       reload();
@@ -591,50 +593,13 @@ function closeTabs(tabIds, groupsLength, page){
 
 // CHANGE GROUP & ADD TO GROUP FUNCTION
 
-function loadGroup(group, callBack){
-  console.log("Loading group " + group + "...");
-  browser.runtime.getBackgroundPage().then((page) => {
-    showLoader();
-    page.activateListeners = false;
-    browser.storage.local.get().then((localData) => {
-      browser.storage.sync.get().then((syncData) => {
-
-        browser.tabs.query({windowId: localData.supportedWindowId}).then((tabs) => { // Get tabs
-          let tabsArray = [];
-          let i = Object.keys(localData.sharedNonSyncTabs).length + Object.keys(syncData.sharedSyncTabs).length;
-          for(let tab of tabs){
-            if(tab.index >= i) tabsArray.push(tab.id);
-          }
-
-          
-          for(let tabInfo of Object.values(syncData.groupsTabs[group])){
-            browser.tabs.create({url: tabInfo.url, pinned: tabInfo.pinned, windowId: localData.supportedWindowId, index: i}).then(() => {}, () => {
-              browser.tabs.create({windowId: localData.supportedWindowId}).then(() => {});
-            });
-            i++;
-          }
-          if(i ===0){
-            browser.tabs.create({windowId: localData.supportedWindowId}).then(() => {});
-          }
-
-          setTimeout(() => {
-            browser.tabs.remove(tabsArray).then(() => {
-              browser.storage.local.set({currentGroup: group}).then(() => {
-                page.activateListeners = true;
-                page.updateAllSavedTabs();
-                reload();
-                callBack();
-              });
-            });
-          }, 1000);
-
-        });
-
-        browser.browserAction.setBadgeText({text: group.toUpperCase(), windowId: localData.supportedWindowId}).then(() => {});
-
-      }, (error) => { console.log(error); });
-    }, (error) => { console.log(error); });
-  });
+async function loadGroup(groupName){
+  const page = await browser.runtime.getBackgroundPage();
+  
+  showLoader();
+  
+  await page.loadGroup(groupName);
+  reload();
 }
 
 function addToGroup(group, tabs){
@@ -661,10 +626,7 @@ function addToGroup(group, tabs){
     browser.storage.sync.set({groupsTabs}).then(() => {
       reload();
     });
-
   }
-
-  
 }
 
 function moveTabsAutoMenu(tabs, mouseX){
@@ -697,52 +659,6 @@ function moveTabsAutoMenu(tabs, mouseX){
 }
 
 // OTHERS FUNCTIONS
-
-function editListsSizes(page, localData, syncData, sharedNonSync, sharedSync){
-  let sharedSyncTabs = syncData.sharedSyncTabs;
-  let sharedSyncLength = Object.keys(sharedSyncTabs).length;
-  let sharedNonSyncTabs = localData.sharedNonSyncTabs;
-  let sharedNonSyncLength = Object.keys(sharedNonSyncTabs).length;
-
-  if(sharedNonSync !== 0){
-    if(sharedNonSync < 0){
-      delete sharedNonSyncTabs[(sharedNonSyncLength-1)+''];
-    }else{
-      sharedNonSyncTabs[sharedNonSyncLength+''] = {};
-    }
-    browser.storage.local.set({sharedNonSyncTabs}).then(() => {
-      page.forceUpdateAllSavedTabs(() => {
-
-        if(sharedSync !== 0){
-          if(sharedSync < 0){
-            delete sharedSyncTabs[(sharedSyncLength-1)+''];
-          }else{
-            sharedSyncTabs[sharedSyncLength+''] = {};
-          }
-          browser.storage.sync.set({sharedSyncTabs}).then(() => {
-          page.forceUpdateAllSavedTabs(() => {
-              reload();
-            });
-          });
-        }else reload();
-
-      });
-    });
-  }else if(sharedSync !== 0){
-
-    if(sharedSync < 0){
-      delete sharedSyncTabs[(sharedSyncLength-1)+''];
-    }else{
-      sharedSyncTabs[sharedSyncLength+''] = {};
-    }
-    browser.storage.sync.set({sharedSyncTabs}).then(() => {
-    page.forceUpdateAllSavedTabs(() => {
-        reload();
-      });
-    });
-
-  }
-}
 
 function hideLoader(){
   document.getElementById("js-page-loader").setAttribute('style', 'display: none;');
