@@ -289,10 +289,8 @@ window.loadGroup = async function loadGroup(group){
     }
     i++;
   }
-  if(i ===0){
-    await browser.tabs.create({windowId: localData.supportedWindowId})
-    await browser.tabs.remove(tabsArray);
-  }
+  if(i === 0) await browser.tabs.create({windowId: localData.supportedWindowId})
+  if(!tabsRemoved) await browser.tabs.remove(tabsArray);
   
   await browser.storage.local.set({currentGroup: group});
   window.enableListeners = true;
@@ -344,7 +342,8 @@ browser.storage.sync.get().then(async (syncData) => {
  * @param insert if true, insert a tab. if false, remove a tab.
  * @return Promise<void> resolved after storage editedname
  */
-window.editGroupListSize = function editGroupListSize(data, groupType, insert){
+window.editGroupListSize = async function editGroupListSize(data, groupType, insert){
+
   const groupPropertyName = getGroupPropertyName(groupType);
   const storageName = getStorageName(groupType);
 
@@ -355,8 +354,10 @@ window.editGroupListSize = function editGroupListSize(data, groupType, insert){
   else delete tabs[(length-1)+''];
 
   let newStorage = {}; newStorage[groupPropertyName] = tabs;
-  return browser.storage[storageName].set(newStorage);
-
+  
+  await browser.storage[storageName].set(newStorage);
+  await forceUpdateAllSavedTabs();
+  
 }
 
 window.getSyncData = async function getSyncData(){

@@ -33,8 +33,9 @@ async function processTabRemoved(wereListenersEnabled, windowId, tabIndex){
         await editGroupListSize(localData, tabInfo.group, false)
     }else if(tabInfo.group === GROUP_COMMON_SYNC){
         await editGroupListSize(await window.getSyncData(), tabInfo.group, false)
+    }else{
+        await updateAllSavedTabs();
     }
-    updateAllSavedTabs();
 }
 
 /********** ON TAB CREATED **********/
@@ -76,7 +77,6 @@ browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
                     const syncData = await getSyncData();
                     await editGroupListSize(syncData, lastTabInfo.group, false);
                 }
-                updateAllSavedTabs();
                 await browser.tabs.executeScript({code : 'alert("The Common tabs have to stay pinned, this tab is not anymore a Common tab.")'});
                 
             }else saveOrUpdateSavedTabByTab(tab);

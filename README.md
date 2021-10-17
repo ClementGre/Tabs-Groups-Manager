@@ -10,11 +10,11 @@ You can install this extension via the [Firefox Add-Ons](https://addons.mozilla.
 
 ## Features
 
-- Create custom groups of tabs (The current group is sync with current tabs)
-- The add-ons work on only one window that you can change when you want
+- Create custom groups of tabs (The current group is synchronized with current tabs)
+- The add-on work on only one window that you can change as you want
 - You can define a tab as common to all groups
 - You can define a tab as not sync with others computers (if it's a common tab)
-- Add-ons is independent of the browser pin system
+- Add-on is independent of the browser pin system
 
 ## Preview
 

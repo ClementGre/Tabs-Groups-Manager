@@ -248,7 +248,7 @@ let updateGroupsListPanel = function updateGroupsListPanel(){
           };
           
           document.getElementById("js-tab-actions-sync").onmousedown = () => { // From Group to Common no sync
-
+            
             page.countListsLengths((sharedNonSyncLength) => {
               let targetIndex = sharedNonSyncLength;
 
