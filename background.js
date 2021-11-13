@@ -208,7 +208,7 @@ window.countListsLengths = function countListsLengths(callBack){
 }
 // Delete saved tabs with an index >= x
 let deleteNextSavedTabs = function deleteNextSavedTabs(index, currentGroup){
-  console.log("deleteTab " + index);
+  console.log("delete tab " + index);
 
   return new Promise((resolve, reject) => {
     countListsLengths(async (sharedNonSyncLength, sharedSyncLength) => {

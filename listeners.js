@@ -3,12 +3,15 @@ const GROUP_COMMON_SYNC = 2;
 
 /********** ON TAB CLOSED **********/
 
-browser.tabs.onRemoved.addListener(async (tabId, removeInfo) => { // Remove Tab
+browser.tabs.onRemoved.addListener((tabId, removeInfo) => { // Remove Tab
     if(removeInfo.isWindowClosing) return;
     
-    processTabRemoved(window.enableListeners, removeInfo.windowId, lastOpenedTabsIndexes[tabId]).then(() => {}).catch(e => {
-        console.error("Error while processing tab removing (onRemoved): ", e)
-    })
+    // The event is called before the tab actually closes. Then, a timeout is necessary.
+    setTimeout(() => {
+        processTabRemoved(window.enableListeners, removeInfo.windowId, lastOpenedTabsIndexes[tabId]).then(() => {}).catch(e => {
+            console.error("Error while processing tab removing (onRemoved): ", e)
+        })
+    }, 1000)
 });
 
 /********** ON TAB DETACHED **********/
@@ -136,6 +139,6 @@ browser.tabs.onMoved.addListener(async (tabId, moveInfo) => {
                 return;
             }
         }
-        updateAllSavedTabs();
+        await updateAllSavedTabs();
     });
 });
